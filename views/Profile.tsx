@@ -1,7 +1,7 @@
 
 import React, { useState, memo, useCallback } from 'react';
 import { Card, Input, Button } from '../components/UI';
-import { UserCircle, Save, CheckCircle2, Download, Smartphone, Share } from 'lucide-react';
+import { UserCircle, Save, CheckCircle2, Download, Smartphone } from 'lucide-react';
 import { UserProfile, View } from '../types';
 
 interface ProfileProps {
@@ -44,60 +44,10 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
         </h2>
       </div>
 
-      {!isInstalled && (canInstall || isIOS) && (
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
+      <section className="flex flex-col gap-3">
+        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
 
-          {canInstall && (
-            <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500 text-white rounded-xl">
-                  <Download size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
-                  <p className="text-[10px] text-slate-500">Acesse offline e tenha ícone na tela inicial</p>
-                </div>
-              </div>
-              <Button variant="primary" fullWidth onClick={onInstall} className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200">
-                Instalar Ke Gestão
-              </Button>
-            </Card>
-          )}
-
-          {!canInstall && isIOS && (
-            <Card className="flex flex-col gap-4 border-2 border-sky-100 dark:border-sky-900/30 bg-sky-50/30 dark:bg-sky-900/10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-sky-500 text-white rounded-xl">
-                  <Smartphone size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no iPhone / iPad</p>
-                  <p className="text-[10px] text-slate-500">Adicione à tela inicial pelo Safari</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">1</span>
-                  <span>Toque no ícone de compartilhar <Share size={12} className="inline mb-0.5" /> na barra do Safari</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">2</span>
-                  <span>Selecione <strong>"Adicionar à Tela de Início"</strong></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">3</span>
-                  <span>Confirme tocando em <strong>"Adicionar"</strong></span>
-                </div>
-              </div>
-            </Card>
-          )}
-        </section>
-      )}
-
-      {isInstalled && (
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
+        {isInstalled ? (
           <Card className="flex items-center gap-3 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
             <div className="p-2 bg-emerald-500 text-white rounded-xl">
               <CheckCircle2 size={20} />
@@ -107,8 +57,65 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
               <p className="text-[10px] text-slate-500">Ke Gestão está na sua tela inicial</p>
             </div>
           </Card>
-        </section>
-      )}
+        ) : canInstall ? (
+          <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500 text-white rounded-xl">
+                <Download size={20} />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
+                <p className="text-[10px] text-slate-500">Acesse offline e tenha ícone na tela inicial</p>
+              </div>
+            </div>
+            <Button variant="primary" fullWidth onClick={onInstall} className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200">
+              Instalar Ke Gestão
+            </Button>
+          </Card>
+        ) : isIOS ? (
+          <Card className="flex flex-col gap-4 border-2 border-sky-100 dark:border-sky-900/30 bg-sky-50/30 dark:bg-sky-900/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-500 text-white rounded-xl">
+                <Smartphone size={20} />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no iPhone / iPad</p>
+                <p className="text-[10px] text-slate-500">Adicione à tela inicial pelo Safari</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">1</span>
+                <span>Toque no ícone de compartilhar na barra do Safari</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">2</span>
+                <span>Selecione <strong>"Adicionar à Tela de Início"</strong></span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">3</span>
+                <span>Confirme tocando em <strong>"Adicionar"</strong></span>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card className="flex flex-col gap-4 border-2 border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-400 text-white rounded-xl">
+                <Smartphone size={20} />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar como App</p>
+                <p className="text-[10px] text-slate-500">Use o menu do seu navegador para instalar</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
+              <p><strong>Chrome/Edge:</strong> menu ⋮ → "Instalar aplicativo"</p>
+              <p><strong>Samsung Internet:</strong> menu → "Adicionar à tela inicial"</p>
+            </div>
+          </Card>
+        )}
+      </section>
 
       <section className="flex flex-col gap-3">
         <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Configurações do Perfil</h3>

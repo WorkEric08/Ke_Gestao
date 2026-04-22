@@ -25,9 +25,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Permite à página acionar a ativação imediata do novo SW
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Fetch: Estratégia Inteligente
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // /version.json sempre sai pela rede — é o sinal usado para detectar update disponível.
+  if (url.pathname === '/version.json') {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   // Para navegações (quando o usuário recarrega ou abre o app)
   if (event.request.mode === 'navigate') {

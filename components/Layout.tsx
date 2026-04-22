@@ -1,8 +1,8 @@
-
-import React, { memo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { View } from '../types';
 import { NAV_ITEMS } from '../constants';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Info } from 'lucide-react';
+import DevInfo from './DevInfo';
 
 interface LayoutProps {
   currentView: View;
@@ -14,27 +14,40 @@ interface LayoutProps {
   toggleTheme: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ 
-  currentView, 
-  setView, 
-  title, 
-  children, 
+const Layout: React.FC<LayoutProps> = ({
+  currentView,
+  setView,
+  title,
+  children,
   actions,
   isDark,
   toggleTheme
 }) => {
+  const [devInfoOpen, setDevInfoOpen] = useState(false);
+
+  const openDevInfo = useCallback(() => setDevInfoOpen(true), []);
+  const closeDevInfo = useCallback(() => setDevInfoOpen(false), []);
+
   return (
     <div className="flex flex-col min-h-screen pb-20 overflow-x-hidden bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm px-4 h-16 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800 dark:text-slate-100 tracking-tight">{title}</h1>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={toggleTheme}
             className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 active:scale-90 transition-all"
             aria-label="Alternar Tema"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button
+            onClick={openDevInfo}
+            className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 active:scale-90 transition-all"
+            aria-label="Informações do sistema"
+            title="Informações do sistema"
+          >
+            <Info size={20} />
           </button>
           {actions}
         </div>
@@ -60,6 +73,8 @@ const Layout: React.FC<LayoutProps> = ({
           </button>
         ))}
       </nav>
+
+      <DevInfo open={devInfoOpen} onClose={closeDevInfo} />
     </div>
   );
 };

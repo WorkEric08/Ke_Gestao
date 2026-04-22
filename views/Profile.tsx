@@ -1,7 +1,7 @@
 
 import React, { useState, memo, useCallback } from 'react';
 import { Card, Input, Button } from '../components/UI';
-import { UserCircle, Save, CheckCircle2, Download } from 'lucide-react';
+import { UserCircle, Save, CheckCircle2, Download, Smartphone, Share } from 'lucide-react';
 import { UserProfile, View } from '../types';
 
 interface ProfileProps {
@@ -9,10 +9,12 @@ interface ProfileProps {
   updateProfile: (p: UserProfile) => void;
   canInstall?: boolean;
   onInstall?: () => void;
+  isInstalled?: boolean;
+  isIOS?: boolean;
   setView: (view: View) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, setView }) => {
+const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, setView }) => {
   const [formData, setFormData] = useState({
     name: profile.name,
     businessName: profile.businessName
@@ -42,22 +44,68 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
         </h2>
       </div>
 
-      {canInstall && (
+      {!isInstalled && (canInstall || isIOS) && (
         <section className="flex flex-col gap-3">
           <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
-          <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500 text-white rounded-xl">
-                <Download size={20} />
+
+          {canInstall && (
+            <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500 text-white rounded-xl">
+                  <Download size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
+                  <p className="text-[10px] text-slate-500">Acesse offline e tenha ícone na tela inicial</p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Celular</p>
-                <p className="text-[10px] text-slate-500">Acesse offline e tenha ícone na tela inicial</p>
+              <Button variant="primary" fullWidth onClick={onInstall} className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200">
+                Instalar Ke Gestão
+              </Button>
+            </Card>
+          )}
+
+          {!canInstall && isIOS && (
+            <Card className="flex flex-col gap-4 border-2 border-sky-100 dark:border-sky-900/30 bg-sky-50/30 dark:bg-sky-900/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-sky-500 text-white rounded-xl">
+                  <Smartphone size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no iPhone / iPad</p>
+                  <p className="text-[10px] text-slate-500">Adicione à tela inicial pelo Safari</p>
+                </div>
               </div>
+              <div className="flex flex-col gap-2 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">1</span>
+                  <span>Toque no ícone de compartilhar <Share size={12} className="inline mb-0.5" /> na barra do Safari</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">2</span>
+                  <span>Selecione <strong>"Adicionar à Tela de Início"</strong></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">3</span>
+                  <span>Confirme tocando em <strong>"Adicionar"</strong></span>
+                </div>
+              </div>
+            </Card>
+          )}
+        </section>
+      )}
+
+      {isInstalled && (
+        <section className="flex flex-col gap-3">
+          <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
+          <Card className="flex items-center gap-3 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
+            <div className="p-2 bg-emerald-500 text-white rounded-xl">
+              <CheckCircle2 size={20} />
             </div>
-            <Button variant="primary" fullWidth onClick={onInstall} className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200">
-              Instalar Ke Gestão
-            </Button>
+            <div className="flex flex-col">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">App Instalado</p>
+              <p className="text-[10px] text-slate-500">Ke Gestão está na sua tela inicial</p>
+            </div>
           </Card>
         </section>
       )}

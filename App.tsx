@@ -30,15 +30,32 @@ const App: React.FC = () => {
 
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   useEffect(() => {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as any).standalone === true;
+    if (isStandalone) setIsAppInstalled(true);
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setIsAppInstalled(true);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
   const handleInstallApp = useCallback(async () => {
@@ -47,6 +64,7 @@ const App: React.FC = () => {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
+      setIsAppInstalled(true);
     }
   }, [deferredPrompt]);
 
@@ -119,6 +137,8 @@ const App: React.FC = () => {
             updateProfile={updateProfile}
             canInstall={!!deferredPrompt}
             onInstall={handleInstallApp}
+            isInstalled={isAppInstalled}
+            isIOS={isIOS}
             setView={setCurrentView}
           />
         );

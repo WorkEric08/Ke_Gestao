@@ -151,22 +151,23 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
 
             <div className="flex flex-col gap-2 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-2xl p-4">
               <InfoRow icon={<Tag size={14} />} label="Versão" value={LOCAL.version} />
-              <InfoRow
-                icon={<GitCommit size={14} />}
-                label="Último commit"
-                value={
-                  <span className="flex items-center gap-2">
-                    <code className="font-mono text-[11px] px-1.5 py-0.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded">
-                      {LOCAL.commitShort || '—'}
-                    </code>
-                    {LOCAL.message && (
-                      <span className="text-slate-500 dark:text-slate-400 text-xs truncate">{LOCAL.message}</span>
-                    )}
-                  </span>
-                }
-              />
+              <div className="flex items-start gap-3 py-1.5">
+                <div className="text-slate-300 dark:text-slate-600 mt-0.5 shrink-0">
+                  <GitCommit size={14} />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                  <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Último commit</span>
+                  <code className="font-mono text-[11px] px-1.5 py-0.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded self-start">
+                    {LOCAL.commitShort || '—'}
+                  </code>
+                  {LOCAL.message && (
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-snug break-words whitespace-pre-wrap">
+                      {LOCAL.message}
+                    </p>
+                  )}
+                </div>
+              </div>
               <InfoRow icon={<Clock size={14} />} label="Data do commit" value={formatDateTime(LOCAL.date)} />
-              <InfoRow icon={<Clock size={14} />} label="Build em" value={formatDateTime(LOCAL.buildTime)} />
             </div>
           </section>
 
@@ -206,7 +207,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
                       v{remote.version} · {remote.commitShort}
                     </span>
                     {remote.message && (
-                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-snug">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-snug break-words whitespace-pre-wrap">
                         {remote.message}
                       </p>
                     )}

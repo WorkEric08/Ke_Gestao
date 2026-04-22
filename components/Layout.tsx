@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View } from '../types';
 import { NAV_ITEMS } from '../constants';
 import { Moon, Sun } from 'lucide-react';
@@ -64,4 +64,4 @@ const Layout: React.FC<LayoutProps> = ({
   );
 };
 
-export default Layout;
+export default memo(Layout);

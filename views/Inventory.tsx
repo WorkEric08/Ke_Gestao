@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { Card, Input, Button, Badge, Select } from '../components/UI';
 import { 
   Search, 
@@ -89,18 +89,18 @@ const Inventory: React.FC<InventoryProps> = ({
     }
   }, [editingProduct]);
 
-  const closeForm = () => {
+  const closeForm = useCallback(() => {
     setIsAdding(false);
     setEditingProduct(null);
     setForm({ name: '', category: CATEGORIES[0].value, price: '', stock: '', minStock: '2' });
-  };
+  }, []);
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCurrency(e.target.value);
-    setForm({ ...form, price: maskedValue });
-  };
+    setForm(prev => ({ ...prev, price: maskedValue }));
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.price || !form.stock) return;
 
@@ -117,23 +117,24 @@ const Inventory: React.FC<InventoryProps> = ({
     } else {
       addProduct(productData);
     }
-    
-    closeForm();
-  };
 
-  const handleDelete = () => {
+    closeForm();
+  }, [form, editingProduct, addProduct, updateProduct, closeForm]);
+
+  const handleDelete = useCallback(() => {
     if (!editingProduct) return;
     if (window.confirm(`Tem certeza que deseja remover "${editingProduct.name}" do estoque?`)) {
       deleteProduct(editingProduct.id);
       closeForm();
     }
-  };
+  }, [editingProduct, deleteProduct, closeForm]);
 
   const filtered = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = filterCategory === 'Todos' || p.category === filterCategory;
-      return matchesSearch && matchesCategory;
+      if (term && !p.name.toLowerCase().includes(term)) return false;
+      if (filterCategory !== 'Todos' && p.category !== filterCategory) return false;
+      return true;
     });
   }, [products, searchTerm, filterCategory]);
 
@@ -312,4 +313,4 @@ const Inventory: React.FC<InventoryProps> = ({
   );
 };
 
-export default Inventory;
+export default memo(Inventory);

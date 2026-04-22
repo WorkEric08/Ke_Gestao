@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Card, Button, Badge } from '../components/UI';
 import { 
   ShoppingCart, 
@@ -33,26 +33,31 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminders }) => {
-  const getGreeting = () => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 0 && hour < 6) return 'Boa madrugada';
     if (hour >= 6 && hour < 12) return 'Bom dia';
     if (hour >= 12 && hour < 18) return 'Boa tarde';
     return 'Boa noite';
-  };
+  }, []);
 
-  const displayName = userName.trim() ? userName.split(' ')[0] : 'Consultora';
+  const displayName = useMemo(
+    () => (userName.trim() ? userName.split(' ')[0] : 'Consultora'),
+    [userName]
+  );
 
-  const lastMonthLabel = stats.furthestInstallment 
-    ? new Date(stats.furthestInstallment).toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '')
-    : null;
+  const lastMonthLabel = useMemo(() => (
+    stats.furthestInstallment
+      ? new Date(stats.furthestInstallment).toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '')
+      : null
+  ), [stats.furthestInstallment]);
 
   return (
     <div className="flex flex-col gap-7 animate-fade-in pb-8">
       {/* Header com Saudação */}
       <section className="px-1 pt-2">
         <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-          {getGreeting()}
+          {greeting}
         </p>
         <h2 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
           Olá, {displayName}
@@ -262,4 +267,4 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
   );
 };
 
-export default Dashboard;
+export default memo(Dashboard);

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import { Card, Button, Badge } from '../components/UI';
 import { 
   ShoppingCart, 
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../utils/format';
 import { Customer, Product, SaleItem, View } from '../types';
-import { useStore } from '../store/useStore';
 import CustomerSelector from '../components/CustomerSelector';
 
 interface NewSaleProps {
@@ -20,12 +19,12 @@ interface NewSaleProps {
   products: Product[];
   createSale: (sale: any) => void;
   setView: (view: View) => void;
+  getCustomerStatus: (id: string) => string;
 }
 
 const CATEGORIES = ['Todos', 'Fragrâncias', 'Maquiagem', 'Cuidados com a Pele', 'Cabelo', 'Corpo e Banho'];
 
-const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setView }) => {
-  const { getCustomerStatus } = useStore();
+const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setView, getCustomerStatus }) => {
   const [step, setStep] = useState(1);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [filterCategory, setFilterCategory] = useState('Todos');
@@ -38,47 +37,56 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
 
   const total = useMemo(() => cartItems.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0), [cartItems]);
 
-  // Função auxiliar para obter a quantidade de um produto específico no carrinho
-  const getCartQuantity = (productId: string) => {
-    return cartItems.find(item => item.productId === productId)?.quantity || 0;
-  };
+  const productMap = useMemo(() => {
+    const m = new Map<string, Product>();
+    for (const p of products) m.set(p.id, p);
+    return m;
+  }, [products]);
+
+  const cartQuantityMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of cartItems) m.set(i.productId, i.quantity);
+    return m;
+  }, [cartItems]);
+
+  const getCartQuantity = useCallback((productId: string) => cartQuantityMap.get(productId) || 0, [cartQuantityMap]);
 
   const filteredProducts = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = filterCategory === 'Todos' || p.category === filterCategory;
-      return matchesSearch && matchesCategory;
+      if (term && !p.name.toLowerCase().includes(term)) return false;
+      if (filterCategory !== 'Todos' && p.category !== filterCategory) return false;
+      return true;
     });
   }, [products, searchTerm, filterCategory]);
 
-  const addToCart = (product: Product) => {
-    const existing = cartItems.find(i => i.productId === product.id);
-    if (existing) {
-      if (existing.quantity >= product.stock) return;
-      setCartItems(cartItems.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i));
-    } else {
-      if (product.stock <= 0) return;
-      setCartItems([...cartItems, { productId: product.id, quantity: 1, unitPrice: product.price }]);
-    }
-  };
-
-  const updateQuantity = (productId: string, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.productId === productId) {
-        const product = products.find(p => p.id === productId);
-        const newQty = item.quantity + delta;
-        if (newQty < 1 || (product && newQty > product.stock)) return item;
-        return { ...item, quantity: newQty };
+  const addToCart = useCallback((product: Product) => {
+    setCartItems(prev => {
+      const existing = prev.find(i => i.productId === product.id);
+      if (existing) {
+        if (existing.quantity >= product.stock) return prev;
+        return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return item;
+      if (product.stock <= 0) return prev;
+      return [...prev, { productId: product.id, quantity: 1, unitPrice: product.price }];
+    });
+  }, []);
+
+  const updateQuantity = useCallback((productId: string, delta: number) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.productId !== productId) return item;
+      const product = productMap.get(productId);
+      const newQty = item.quantity + delta;
+      if (newQty < 1 || (product && newQty > product.stock)) return item;
+      return { ...item, quantity: newQty };
     }));
-  };
+  }, [productMap]);
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = useCallback((productId: string) => {
     setCartItems(prev => prev.filter(i => i.productId !== productId));
-  };
+  }, []);
 
-  const handleFinish = () => {
+  const handleFinish = useCallback(() => {
     createSale({
       customerId: selectedCustomerId,
       items: cartItems,
@@ -90,7 +98,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
     setTimeout(() => {
       setView('dashboard');
     }, 2000);
-  };
+  }, [createSale, selectedCustomerId, cartItems, total, paymentMethod, installments, setView]);
 
   if (showSuccess) {
     return (
@@ -229,7 +237,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
             ) : (
               <div className="flex flex-col gap-1.5 max-h-[20vh] overflow-y-auto beauty-scroll">
                 {cartItems.map(item => {
-                  const p = products.find(prod => prod.id === item.productId);
+                  const p = productMap.get(item.productId);
                   return (
                     <div key={item.productId} className="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
                       <div className="flex-1 overflow-hidden">
@@ -347,4 +355,4 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
   );
 };
 
-export default NewSale;
+export default memo(NewSale);

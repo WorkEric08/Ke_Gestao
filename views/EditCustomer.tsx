@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Card, Input, Button } from '../components/UI';
 import { User, Save, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Customer, View } from '../types';
@@ -18,7 +18,7 @@ const EditCustomer: React.FC<EditCustomerProps> = ({ customer, updateCustomer, s
   });
   const [isSaved, setIsSaved] = useState(false);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     let digits = rawValue.replace(/\D/g, '');
     
@@ -50,10 +50,10 @@ const EditCustomer: React.FC<EditCustomerProps> = ({ customer, updateCustomer, s
       }
     }
     
-    setFormData({ ...formData, phone: formatted });
-  };
+    setFormData(prev => ({ ...prev, phone: formatted }));
+  }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) return;
     
@@ -66,7 +66,7 @@ const EditCustomer: React.FC<EditCustomerProps> = ({ customer, updateCustomer, s
     setTimeout(() => {
       setView('customers');
     }, 1200);
-  };
+  }, [formData, customer.id, updateCustomer, setView]);
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -136,4 +136,4 @@ const EditCustomer: React.FC<EditCustomerProps> = ({ customer, updateCustomer, s
   );
 };
 
-export default EditCustomer;
+export default memo(EditCustomer);

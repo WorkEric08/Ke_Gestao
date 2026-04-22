@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { Card, Input, Button, Badge } from '../components/UI';
 import { Search, UserPlus, Phone, ChevronRight, X, MessageCircle, Edit2, Trash2 } from 'lucide-react';
 import { formatPhone } from '../utils/format';
@@ -57,7 +57,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
     return groups;
   }, [customers, searchTerm, filterStatus, getStatus]);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     let digits = rawValue.replace(/\D/g, '');
     
@@ -90,9 +90,9 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
       }
     }
     setNewPhone(formatted);
-  };
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newPhone) return;
     addCustomer({ 
@@ -102,14 +102,14 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
     setNewName('');
     setNewPhone('');
     setIsAdding(false);
-  };
+  }, [newName, newPhone, addCustomer]);
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = useCallback((id: string, name: string) => {
     if (window.confirm(`Deseja excluir permanentemente o cliente "${name}"?`)) {
       deleteCustomer(id);
       setExpandedCustomerId(null);
     }
-  };
+  }, [deleteCustomer]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,15 +133,15 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
     </button>
   );
 
-  const toggleExpand = (id: string) => {
+  const toggleExpand = useCallback((id: string) => {
     setExpandedCustomerId(prev => prev === id ? null : id);
-  };
+  }, []);
 
-  const openWhatsApp = (phone: string) => {
+  const openWhatsApp = useCallback((phone: string) => {
     const cleaned = phone.replace(/\D/g, '');
     const url = `https://wa.me/55${cleaned}`;
     window.open(url, '_blank');
-  };
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -302,4 +302,4 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
   );
 };
 
-export default Customers;
+export default memo(Customers);

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, memo } from 'react';
 import { Card, Badge, Button } from './UI';
 import { Search, X, UserPlus, Phone, CheckCircle2, ChevronRight } from 'lucide-react';
 import { formatPhone } from '../utils/format';
@@ -207,4 +207,4 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
   );
 };
 
-export default CustomerSelector;
+export default memo(CustomerSelector);

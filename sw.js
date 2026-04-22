@@ -1,39 +1,26 @@
-const CACHE_NAME = 'kegestao-v1.5';
+const CACHE_NAME = 'kegestao-v1.6';
 const OFFLINE_URL = '/';
 
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/index.tsx',
-  '/manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+  '/manifest.json'
 ];
 
-// Instalação: Cache dos arquivos essenciais
+// Instalação: cacheia o shell mínimo. Demais assets caem no runtime via fetch handler.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Ke Gestão: Caching estático inicial');
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
 
-// Ativação: Limpeza de caches obsoletos
+// Ativação: remove caches obsoletos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Ke Gestão: Removendo cache antigo:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((cacheNames) => Promise.all(
+      cacheNames.filter(n => n !== CACHE_NAME).map(n => caches.delete(n))
+    ))
   );
   self.clients.claim();
 });

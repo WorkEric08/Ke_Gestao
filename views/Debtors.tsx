@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import { Card, Badge, Input } from '../components/UI';
 import { AlertTriangle, Calendar, Phone, CheckCircle2, User, ArrowRight, Search, X, Filter } from 'lucide-react';
 import { Installment, Customer, Sale, Product } from '../types';
@@ -17,53 +17,62 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string>('todos');
 
-  // Extrair meses únicos que possuem parcelas pendentes para o filtro
+  const saleMap = useMemo(() => {
+    const m = new Map<string, Sale>();
+    for (const s of sales) m.set(s.id, s);
+    return m;
+  }, [sales]);
+
+  const customerMap = useMemo(() => {
+    const m = new Map<string, Customer>();
+    for (const c of customers) m.set(c.id, c);
+    return m;
+  }, [customers]);
+
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
-    installments
-      .filter(ins => !ins.paidAt)
-      .forEach(ins => {
-        const date = new Date(ins.dueDate);
-        const monthLabel = date.toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '');
-        months.add(monthLabel);
-      });
-    return Array.from(months).sort((a, b) => {
-      return 0; 
-    });
+    for (const ins of installments) {
+      if (ins.paidAt) continue;
+      const d = new Date(ins.dueDate);
+      const monthLabel = d.toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '');
+      months.add(monthLabel);
+    }
+    return Array.from(months);
   }, [installments]);
 
   const filteredPending = useMemo(() => {
-    return installments
-      .filter(ins => {
-        if (ins.paidAt) return false;
-        
-        const sale = sales.find(s => s.id === ins.saleId);
-        const customer = customers.find(c => c.id === sale?.customerId);
-        
-        // Filtro por Cliente
-        const matchesSearch = !searchTerm || 
-          customer?.name.toLowerCase().includes(searchTerm.toLowerCase());
-          
-        // Filtro por Mês
-        const date = new Date(ins.dueDate);
-        const monthLabel = date.toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '');
-        const matchesMonth = selectedMonth === 'todos' || monthLabel === selectedMonth;
-        
-        return matchesSearch && matchesMonth;
-      })
-      .sort((a, b) => a.dueDate - b.dueDate);
-  }, [installments, searchTerm, selectedMonth, sales, customers]);
+    const term = searchTerm.toLowerCase().trim();
+    const list: Installment[] = [];
+    for (const ins of installments) {
+      if (ins.paidAt) continue;
 
-  const getOverdueStatus = (dueDate: number) => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    if (dueDate < today) return 'vencida';
-    return 'pendente';
-  };
+      if (term) {
+        const sale = saleMap.get(ins.saleId);
+        const customer = sale ? customerMap.get(sale.customerId) : undefined;
+        if (!customer?.name.toLowerCase().includes(term)) continue;
+      }
 
-  const clearFilters = () => {
+      if (selectedMonth !== 'todos') {
+        const d = new Date(ins.dueDate);
+        const monthLabel = d.toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '');
+        if (monthLabel !== selectedMonth) continue;
+      }
+
+      list.push(ins);
+    }
+    list.sort((a, b) => a.dueDate - b.dueDate);
+    return list;
+  }, [installments, searchTerm, selectedMonth, saleMap, customerMap]);
+
+  const today = useMemo(() => new Date().setHours(0, 0, 0, 0), []);
+  const getOverdueStatus = useCallback((dueDate: number) => (
+    dueDate < today ? 'vencida' : 'pendente'
+  ), [today]);
+
+  const clearFilters = useCallback(() => {
     setSearchTerm('');
     setSelectedMonth('todos');
-  };
+  }, []);
 
   return (
     <div className="flex flex-col gap-5">
@@ -160,8 +169,8 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
           </div>
           
           {filteredPending.map(ins => {
-            const sale = sales.find(s => s.id === ins.saleId);
-            const customer = customers.find(c => c.id === sale?.customerId);
+            const sale = saleMap.get(ins.saleId);
+            const customer = sale ? customerMap.get(sale.customerId) : undefined;
             const status = getOverdueStatus(ins.dueDate);
             
             return (
@@ -227,4 +236,4 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
   );
 };
 
-export default Debtors;
+export default memo(Debtors);

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Card, Input, Button } from '../components/UI';
 import { UserCircle, Save, CheckCircle2, Download } from 'lucide-react';
 import { UserProfile, View } from '../types';
@@ -19,19 +19,17 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
   });
   const [isSaved, setIsSaved] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     updateProfile({
       ...profile,
       name: formData.name,
       businessName: formData.businessName
     });
     setIsSaved(true);
-    
-    // Auto redirect to dashboard after a short delay for feedback
     setTimeout(() => {
       setView('dashboard');
     }, 1200);
-  };
+  }, [profile, formData, updateProfile, setView]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -109,4 +107,4 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
   );
 };
 
-export default Profile;
+export default memo(Profile);

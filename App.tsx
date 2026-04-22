@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import Dashboard from './views/Dashboard';
@@ -9,64 +8,54 @@ import Inventory from './views/Inventory';
 import NewSale from './views/NewSale';
 import Debtors from './views/Debtors';
 import Profile from './views/Profile';
-import SplashScreen from './components/SplashScreen';
 
 const App: React.FC = () => {
-  const { 
-    data, 
-    currentView, 
-    setCurrentView, 
-    addCustomer, 
+  const {
+    data,
+    currentView,
+    setCurrentView,
+    addCustomer,
     updateCustomer,
     deleteCustomer,
-    addProduct, 
+    addProduct,
     updateProduct,
     deleteProduct,
-    createSale, 
+    createSale,
     markInstallmentAsPaid,
     updateProfile,
     getCustomerStatus,
-    getDashboardStats,
+    dashboardStats,
     toggleTheme
   } = useStore();
 
-  const [showSplash, setShowSplash] = useState(true);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500);
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
-  const handleInstallApp = async () => {
+  const handleInstallApp = useCallback(async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
     }
-  };
+  }, [deferredPrompt]);
 
-  const handleEditCustomer = (id: string) => {
+  const handleEditCustomer = useCallback((id: string) => {
     setEditingCustomerId(id);
     setCurrentView('edit-customer');
-  };
+  }, [setCurrentView]);
 
-  const getTodayReminders = () => {
+  const todayReminders = useMemo(() => {
     const today = new Date().setHours(0, 0, 0, 0);
     return data.installments
       .filter(ins => {
@@ -82,55 +71,52 @@ const App: React.FC = () => {
           amount: ins.amount
         };
       });
-  };
-
-  if (showSplash) {
-    return <SplashScreen />;
-  }
+  }, [data.installments, data.sales, data.customers]);
 
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
         return (
-          <Dashboard 
-            stats={getDashboardStats()} 
-            setView={setCurrentView} 
+          <Dashboard
+            stats={dashboardStats}
+            setView={setCurrentView}
             userName={data.profile.name}
-            reminders={getTodayReminders()}
+            reminders={todayReminders}
           />
         );
       case 'customers':
         return <Customers customers={data.customers} addCustomer={addCustomer} deleteCustomer={deleteCustomer} getStatus={getCustomerStatus} onEdit={handleEditCustomer} />;
       case 'add-customer':
         return <Customers customers={data.customers} addCustomer={addCustomer} deleteCustomer={deleteCustomer} getStatus={getCustomerStatus} onEdit={handleEditCustomer} initialIsAdding={true} />;
-      case 'edit-customer':
+      case 'edit-customer': {
         const customerToEdit = data.customers.find(c => c.id === editingCustomerId);
         if (!customerToEdit) {
           setCurrentView('customers');
           return null;
         }
         return <EditCustomer customer={customerToEdit} updateCustomer={updateCustomer} setView={setCurrentView} />;
+      }
       case 'inventory':
         return <Inventory products={data.products} addProduct={addProduct} updateProduct={updateProduct} deleteProduct={deleteProduct} />;
       case 'add-product':
         return <Inventory products={data.products} addProduct={addProduct} updateProduct={updateProduct} deleteProduct={deleteProduct} initialIsAdding={true} />;
       case 'new-sale':
-        return <NewSale customers={data.customers} products={data.products} createSale={createSale} setView={setCurrentView} />;
+        return <NewSale customers={data.customers} products={data.products} createSale={createSale} setView={setCurrentView} getCustomerStatus={getCustomerStatus} />;
       case 'debtors':
         return (
-          <Debtors 
-            installments={data.installments} 
-            customers={data.customers} 
-            sales={data.sales} 
-            products={data.products} 
-            markPaid={markInstallmentAsPaid} 
+          <Debtors
+            installments={data.installments}
+            customers={data.customers}
+            sales={data.sales}
+            products={data.products}
+            markPaid={markInstallmentAsPaid}
           />
         );
       case 'profile':
         return (
-          <Profile 
-            profile={data.profile} 
-            updateProfile={updateProfile} 
+          <Profile
+            profile={data.profile}
+            updateProfile={updateProfile}
             canInstall={!!deferredPrompt}
             onInstall={handleInstallApp}
             setView={setCurrentView}
@@ -138,17 +124,17 @@ const App: React.FC = () => {
         );
       default:
         return (
-          <Dashboard 
-            stats={getDashboardStats()} 
-            setView={setCurrentView} 
-            userName={data.profile.name} 
-            reminders={getTodayReminders()}
+          <Dashboard
+            stats={dashboardStats}
+            setView={setCurrentView}
+            userName={data.profile.name}
+            reminders={todayReminders}
           />
         );
     }
   };
 
-  const getTitle = () => {
+  const title = useMemo(() => {
     switch (currentView) {
       case 'dashboard': return data.profile.businessName || 'Ke Gestão';
       case 'customers':
@@ -161,19 +147,19 @@ const App: React.FC = () => {
       case 'profile': return 'Meu Perfil';
       default: return 'Ke Gestão';
     }
-  };
+  }, [currentView, data.profile.businessName]);
 
-  const currentLayoutView = () => {
+  const layoutView = useMemo(() => {
     if (currentView === 'add-customer' || currentView === 'edit-customer') return 'customers';
     if (currentView === 'add-product') return 'inventory';
     return currentView;
-  };
+  }, [currentView]);
 
   return (
-    <Layout 
-      currentView={currentLayoutView()} 
-      setView={setCurrentView} 
-      title={getTitle()}
+    <Layout
+      currentView={layoutView}
+      setView={setCurrentView}
+      title={title}
       isDark={data.profile.theme === 'dark'}
       toggleTheme={toggleTheme}
     >

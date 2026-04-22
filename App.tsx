@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  const isAndroid = /Android/i.test(navigator.userAgent);
 
   useEffect(() => {
     const isStandalone =
@@ -139,6 +140,7 @@ const App: React.FC = () => {
             onInstall={handleInstallApp}
             isInstalled={isAppInstalled}
             isIOS={isIOS}
+            isAndroid={isAndroid}
             setView={setCurrentView}
           />
         );

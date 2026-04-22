@@ -11,15 +11,26 @@ interface ProfileProps {
   onInstall?: () => void;
   isInstalled?: boolean;
   isIOS?: boolean;
+  isAndroid?: boolean;
   setView: (view: View) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, setView }) => {
+const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isAndroid, setView }) => {
   const [formData, setFormData] = useState({
     name: profile.name,
     businessName: profile.businessName
   });
   const [isSaved, setIsSaved] = useState(false);
+  const [installFeedback, setInstallFeedback] = useState<string | null>(null);
+
+  const handleInstallClick = useCallback(() => {
+    if (canInstall && onInstall) {
+      onInstall();
+      return;
+    }
+    setInstallFeedback('O navegador ainda não liberou a instalação. Recarregue a página após alguns segundos ou use o menu ⋮ do navegador e toque em "Instalar aplicativo".');
+    setTimeout(() => setInstallFeedback(null), 8000);
+  }, [canInstall, onInstall]);
 
   const handleSave = useCallback(() => {
     updateProfile({
@@ -57,21 +68,6 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
               <p className="text-[10px] text-slate-500">Ke Gestão está na sua tela inicial</p>
             </div>
           </Card>
-        ) : canInstall ? (
-          <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500 text-white rounded-xl">
-                <Download size={20} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
-                <p className="text-[10px] text-slate-500">Acesse offline e tenha ícone na tela inicial</p>
-              </div>
-            </div>
-            <Button variant="primary" fullWidth onClick={onInstall} className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200">
-              Instalar Ke Gestão
-            </Button>
-          </Card>
         ) : isIOS ? (
           <Card className="flex flex-col gap-4 border-2 border-sky-100 dark:border-sky-900/30 bg-sky-50/30 dark:bg-sky-900/10">
             <div className="flex items-center gap-3">
@@ -99,20 +95,37 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
             </div>
           </Card>
         ) : (
-          <Card className="flex flex-col gap-4 border-2 border-slate-100 dark:border-slate-800">
+          <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-400 text-white rounded-xl">
-                <Smartphone size={20} />
+              <div className="p-2 bg-emerald-500 text-white rounded-xl">
+                <Download size={20} />
               </div>
               <div className="flex flex-col">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar como App</p>
-                <p className="text-[10px] text-slate-500">Use o menu do seu navegador para instalar</p>
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
+                <p className="text-[10px] text-slate-500">
+                  {canInstall
+                    ? 'Acesse offline e tenha ícone na tela inicial'
+                    : isAndroid
+                      ? 'Toque para instalar o Ke Gestão no seu Android'
+                      : 'Instale para acessar offline e ter ícone na tela inicial'}
+                </p>
               </div>
             </div>
-            <div className="flex flex-col gap-1 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-              <p><strong>Chrome/Edge:</strong> menu ⋮ → "Instalar aplicativo"</p>
-              <p><strong>Samsung Internet:</strong> menu → "Adicionar à tela inicial"</p>
-            </div>
+
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={handleInstallClick}
+              className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200"
+            >
+              <Download size={18} /> Instalar Ke Gestão
+            </Button>
+
+            {installFeedback && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 leading-relaxed">
+                {installFeedback}
+              </p>
+            )}
           </Card>
         )}
       </section>

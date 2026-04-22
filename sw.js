@@ -4,7 +4,8 @@ const OFFLINE_URL = '/';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/logo.png'
 ];
 
 // Instalação: cacheia o shell mínimo. Demais assets caem no runtime via fetch handler.

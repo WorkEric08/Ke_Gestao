@@ -64,6 +64,19 @@
         }
       }
 
+      // Captura o beforeinstallprompt o mais cedo possível — o evento dispara uma única
+      // vez e geralmente antes do React montar. Sem isso, o prompt é perdido para sempre.
+      window.__deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__deferredInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa:installavailable'));
+      });
+      window.addEventListener('appinstalled', function () {
+        window.__deferredInstallPrompt = null;
+        window.dispatchEvent(new CustomEvent('pwa:installed'));
+      });
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')

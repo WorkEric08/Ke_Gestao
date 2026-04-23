@@ -41,31 +41,52 @@ const App: React.FC = () => {
       (navigator as any).standalone === true;
     if (isStandalone) setIsAppInstalled(true);
 
+    // O evento beforeinstallprompt já pode ter disparado antes do React montar.
+    // O index.html guarda o evento em window.__deferredInstallPrompt — recolhemos aqui.
+    const preCaptured = (window as any).__deferredInstallPrompt;
+    if (preCaptured) setDeferredPrompt(preCaptured);
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).__deferredInstallPrompt = e;
       setDeferredPrompt(e);
     };
 
+    const handleInstallAvailable = () => {
+      const captured = (window as any).__deferredInstallPrompt;
+      if (captured) setDeferredPrompt(captured);
+    };
+
     const handleAppInstalled = () => {
+      (window as any).__deferredInstallPrompt = null;
       setDeferredPrompt(null);
       setIsAppInstalled(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwa:installavailable', handleInstallAvailable);
     window.addEventListener('appinstalled', handleAppInstalled);
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa:installavailable', handleInstallAvailable);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallApp = useCallback(async () => {
     if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
+    try {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        setIsAppInstalled(true);
+      }
+    } catch (err) {
+      console.error('Ke Gestão: erro ao acionar prompt de instalação', err);
+    } finally {
+      // O prompt só pode ser usado uma vez — descarta seja qual for o resultado.
+      (window as any).__deferredInstallPrompt = null;
       setDeferredPrompt(null);
-      setIsAppInstalled(true);
     }
   }, [deferredPrompt]);
 

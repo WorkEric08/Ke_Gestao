@@ -28,8 +28,8 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
       onInstall();
       return;
     }
-    setInstallFeedback('O navegador ainda não liberou a instalação. Recarregue a página após alguns segundos ou use o menu ⋮ do navegador e toque em "Instalar aplicativo".');
-    setTimeout(() => setInstallFeedback(null), 8000);
+    setInstallFeedback('O navegador ainda não liberou a instalação automática. Aguarde alguns segundos e toque novamente, ou abra o menu ⋮ do navegador e escolha "Instalar aplicativo" / "Adicionar à tela inicial".');
+    setTimeout(() => setInstallFeedback(null), 10000);
   }, [canInstall, onInstall]);
 
   const handleSave = useCallback(() => {

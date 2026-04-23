@@ -11,8 +11,8 @@
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "minimal-ui"],
-  "background_color": "#ffffff",
-  "theme_color": "#f43f5e",
+  "background_color": "#020617",
+  "theme_color": "#020617",
   "orientation": "portrait",
   "icons": [
     {

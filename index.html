@@ -7,7 +7,8 @@
     
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta id="theme-meta" name="theme-color" content="#f43f5e">
+    <meta id="theme-meta-light" name="theme-color" media="(prefers-color-scheme: light)" content="#f43f5e">
+    <meta id="theme-meta-dark"  name="theme-color" media="(prefers-color-scheme: dark)"  content="#020617">
     
     <!-- iOS Specific -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,14 +39,17 @@
         }
         
         const root = document.documentElement;
-        const meta = document.getElementById('theme-meta');
-        
+        const metaLight = document.getElementById('theme-meta-light');
+        const metaDark  = document.getElementById('theme-meta-dark');
+
         if (theme === 'dark') {
           root.classList.add('dark');
-          if (meta) meta.setAttribute('content', '#020617');
+          if (metaLight) metaLight.setAttribute('content', '#020617');
+          if (metaDark)  metaDark.setAttribute('content',  '#020617');
         } else {
           root.classList.remove('dark');
-          if (meta) meta.setAttribute('content', '#f43f5e');
+          if (metaLight) metaLight.setAttribute('content', '#f43f5e');
+          if (metaDark)  metaDark.setAttribute('content',  '#f43f5e');
         }
       })();
 

@@ -66,7 +66,8 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] bg-white dark:bg-[#020617] flex flex-col h-[100dvh] w-full animate-fade-in overflow-hidden">
+    <div className="fixed inset-0 z-[2000] flex items-stretch lg:items-center lg:justify-center lg:bg-black/40 lg:backdrop-blur-sm animate-fade-in">
+    <div className="bg-white dark:bg-[#020617] flex flex-col w-full h-[100dvh] lg:h-auto lg:max-h-[85vh] lg:max-w-xl lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
       {/* Header Compacto */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 px-4 h-14 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div className="flex flex-col">
@@ -203,6 +204,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

@@ -167,7 +167,8 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
               Mostrando {filteredPending.length} {filteredPending.length === 1 ? 'pendência' : 'pendências'}
             </span>
           </div>
-          
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredPending.map(ins => {
             const sale = saleMap.get(ins.saleId);
             const customer = sale ? customerMap.get(sale.customerId) : undefined;
@@ -230,6 +231,7 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
               </Card>
             );
           })}
+          </div>
         </div>
       )}
     </div>

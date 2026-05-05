@@ -185,9 +185,9 @@ const Inventory: React.FC<InventoryProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 pb-8">
             {filtered.length === 0 ? (
-              <div className="py-20 text-center text-gray-400 dark:text-slate-600 italic animate-fade-in flex flex-col items-center gap-3">
+              <div className="col-span-full py-20 text-center text-gray-400 dark:text-slate-600 italic animate-fade-in flex flex-col items-center gap-3">
                 <Search size={32} className="opacity-10" />
                 <span>Nenhum produto corresponde aos filtros.</span>
               </div>

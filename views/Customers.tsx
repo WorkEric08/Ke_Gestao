@@ -219,8 +219,8 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                 <span className="text-sm font-black text-rose-500/40 dark:text-rose-400/20 uppercase tracking-tighter">{letter}</span>
                 <div className="flex-1 h-px bg-gray-100 dark:bg-slate-900"></div>
               </div>
-              
-              <div className="flex flex-col gap-3">
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {groupedCustomers[letter].map(customer => {
                   const status = getStatus(customer.id);
                   const isExpanded = expandedCustomerId === customer.id;

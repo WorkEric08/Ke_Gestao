@@ -5,7 +5,9 @@
       "Bash(npx vite *)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(pkill -f \"vite preview\")"
+      "Bash(pkill -f \"vite preview\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Pichau\\\\Desktop\\\\Ke_Gestão_1\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }

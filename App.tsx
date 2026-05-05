@@ -179,7 +179,7 @@ const App: React.FC = () => {
 
   const title = useMemo(() => {
     switch (currentView) {
-      case 'dashboard': return data.profile.businessName || 'Ke Gestão';
+      case 'dashboard': return 'Início';
       case 'customers':
       case 'add-customer':
       case 'edit-customer': return 'Clientes';

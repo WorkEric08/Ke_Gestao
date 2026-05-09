@@ -141,10 +141,10 @@ const Inventory: React.FC<InventoryProps> = ({
   const FilterChip: React.FC<{ label: string }> = ({ label }) => (
     <button
       onClick={() => setFilterCategory(label)}
-      className={`px-4 py-2.5 rounded-2xl text-[11px] font-bold transition-all whitespace-nowrap border ${
-        filterCategory === label 
-          ? 'bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-200 dark:shadow-none translate-y-[-1px]' 
-          : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+      className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+        filterCategory === label
+          ? 'bg-rose-500 border-rose-500 text-white shadow-sm'
+          : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
       }`}
     >
       {label}
@@ -152,40 +152,38 @@ const Inventory: React.FC<InventoryProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-4 relative animate-fade-in">
-      
+    <div className="flex flex-col gap-4">
+
       {!showForm && (
         <>
           <div className="flex items-center gap-2">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 transition-colors group-focus-within:text-rose-500" size={18} />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" size={18} />
               <input
                 placeholder="Buscar produto..."
-                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-slate-100 rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 transition-colors"
+                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-slate-100 rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button 
+            <button
               onClick={() => setIsAdding(true)}
-              className="bg-rose-500 text-white p-3.5 rounded-2xl shadow-lg shadow-rose-200 dark:shadow-none active:scale-95 transition-all"
+              className="bg-rose-500 text-white p-3 rounded-2xl shadow-sm active:scale-95 transition-all"
             >
               <PackagePlus size={20} />
             </button>
           </div>
 
-          <div className="relative">
-            <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 beauty-scroll scroll-mask no-scrollbar">
-              <div className="flex gap-2.5 px-1">
-                <FilterChip label="Todos" />
-                {CATEGORIES.map(cat => (
-                  <FilterChip key={cat.value} label={cat.label} />
-                ))}
-              </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-mask">
+            <div className="flex gap-2">
+              <FilterChip label="Todos" />
+              {CATEGORIES.map(cat => (
+                <FilterChip key={cat.value} label={cat.label} />
+              ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-8">
             {filtered.length === 0 ? (
               <div className="col-span-full py-20 text-center text-gray-400 dark:text-slate-600 italic animate-fade-in flex flex-col items-center gap-3">
                 <Search size={32} className="opacity-10" />

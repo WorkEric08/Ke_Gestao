@@ -1,12 +1,10 @@
 
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo } from 'react';
 import { View } from '../types';
 import { NAV_ITEMS } from '../constants';
 import {
-  Moon, Sun, Info,
   LayoutDashboard, Users, Package, AlertCircle, UserCircle
 } from 'lucide-react';
-import DevInfo from './DevInfo';
 
 interface LayoutProps {
   currentView: View;
@@ -14,8 +12,6 @@ interface LayoutProps {
   title: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
-  isDark: boolean;
-  toggleTheme: () => void;
 }
 
 const SIDEBAR_ICONS: Record<string, React.ReactNode> = {
@@ -32,12 +28,7 @@ const Layout: React.FC<LayoutProps> = ({
   title,
   children,
   actions,
-  isDark,
-  toggleTheme
 }) => {
-  const [devInfoOpen, setDevInfoOpen] = useState(false);
-  const openDevInfo = useCallback(() => setDevInfoOpen(true), []);
-  const closeDevInfo = useCallback(() => setDevInfoOpen(false), []);
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden">
@@ -74,24 +65,6 @@ const Layout: React.FC<LayoutProps> = ({
           ))}
         </nav>
 
-        {/* Bottom actions */}
-        <div className="p-4 border-t border-gray-100 dark:border-slate-800 flex items-center gap-2 shrink-0">
-          <button
-            onClick={toggleTheme}
-            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all text-xs font-semibold"
-            aria-label="Alternar Tema"
-          >
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            <span>{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-          </button>
-          <button
-            onClick={openDevInfo}
-            className="p-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all"
-            aria-label="Informações do sistema"
-          >
-            <Info size={16} />
-          </button>
-        </div>
       </aside>
 
       {/* ── Main area (pushed right on desktop) ── */}
@@ -101,21 +74,6 @@ const Layout: React.FC<LayoutProps> = ({
         <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm px-4 lg:px-6 h-16 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800 dark:text-slate-100 tracking-tight">{title}</h1>
           <div className="flex items-center gap-2">
-            {/* Theme toggle — mobile only (desktop has it in sidebar) */}
-            <button
-              onClick={toggleTheme}
-              className="lg:hidden p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 active:scale-90 transition-all"
-              aria-label="Alternar Tema"
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button
-              onClick={openDevInfo}
-              className="lg:hidden p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 active:scale-90 transition-all"
-              aria-label="Informações do sistema"
-            >
-              <Info size={20} />
-            </button>
             {actions}
           </div>
         </header>
@@ -142,7 +100,6 @@ const Layout: React.FC<LayoutProps> = ({
         ))}
       </nav>
 
-      <DevInfo open={devInfoOpen} onClose={closeDevInfo} />
     </div>
   );
 };

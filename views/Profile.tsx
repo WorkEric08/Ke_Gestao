@@ -1,8 +1,9 @@
 
 import React, { useState, memo, useCallback } from 'react';
 import { Card, Input, Button } from '../components/UI';
-import { UserCircle, Save, CheckCircle2, Download, Smartphone } from 'lucide-react';
+import { UserCircle, Save, CheckCircle2, Download, Smartphone, Moon, Sun, Info } from 'lucide-react';
 import { UserProfile, View } from '../types';
+import DevInfo from '../components/DevInfo';
 
 interface ProfileProps {
   profile: UserProfile;
@@ -13,15 +14,18 @@ interface ProfileProps {
   isIOS?: boolean;
   isAndroid?: boolean;
   setView: (view: View) => void;
+  isDark: boolean;
+  toggleTheme: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isAndroid, setView }) => {
+const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isAndroid, setView, isDark, toggleTheme }) => {
   const [formData, setFormData] = useState({
     name: profile.name,
     businessName: profile.businessName
   });
   const [isSaved, setIsSaved] = useState(false);
   const [installFeedback, setInstallFeedback] = useState<string | null>(null);
+  const [devInfoOpen, setDevInfoOpen] = useState(false);
 
   const handleInstallClick = useCallback(() => {
     if (canInstall && onInstall) {
@@ -131,6 +135,26 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
       </section>
 
       <section className="flex flex-col gap-3">
+        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Preferências</h3>
+        <Card className="flex flex-col gap-2">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
+          >
+            {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-400" />}
+            <span>{isDark ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}</span>
+          </button>
+          <button
+            onClick={() => setDevInfoOpen(true)}
+            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
+          >
+            <Info size={18} className="text-rose-400" />
+            <span>Informações do Sistema</span>
+          </button>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-3">
         <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Configurações do Perfil</h3>
         <Card className="flex flex-col gap-4">
           <Input 
@@ -171,6 +195,8 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
           Ke Gestão v1.5.0 • Perfil do Sucesso
         </p>
       </div>
+
+      <DevInfo open={devInfoOpen} onClose={() => setDevInfoOpen(false)} />
     </div>
   );
 };

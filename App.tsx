@@ -163,6 +163,8 @@ const App: React.FC = () => {
             isIOS={isIOS}
             isAndroid={isAndroid}
             setView={setCurrentView}
+            isDark={data.profile.theme === 'dark'}
+            toggleTheme={toggleTheme}
           />
         );
       default:
@@ -203,8 +205,6 @@ const App: React.FC = () => {
       currentView={layoutView}
       setView={setCurrentView}
       title={title}
-      isDark={data.profile.theme === 'dark'}
-      toggleTheme={toggleTheme}
     >
       {renderView()}
     </Layout>

@@ -14,10 +14,7 @@ import {
   Scissors,
   Bath,
   Edit2,
-  Package,
-  TrendingUp,
-  ShieldAlert,
-  LayoutGrid
+  Package
 } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency } from '../utils/format';
@@ -145,12 +142,6 @@ const Inventory: React.FC<InventoryProps> = ({
     });
   }, [products, searchTerm, filterCategory]);
 
-  const stats = useMemo(() => {
-    const totalValue = products.reduce((acc, p) => acc + p.price * p.stock, 0);
-    const lowStock = products.filter(p => p.stock <= p.minStock).length;
-    return { total: products.length, totalValue, lowStock };
-  }, [products]);
-
   const getCategoryIcon = (category: string) => {
     const cat = CATEGORIES.find(c => c.value === category);
     return cat?.icon ?? <Sparkles size={16} />;
@@ -180,37 +171,6 @@ const Inventory: React.FC<InventoryProps> = ({
 
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 overflow-x-hidden">
-
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-3 flex flex-col gap-1">
-          <div className="w-8 h-8 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center justify-center">
-            <LayoutGrid size={15} className="text-rose-500" />
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">Produtos</p>
-          <p className="text-xl font-black text-gray-800 dark:text-slate-100 leading-none">{stats.total}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-3 flex flex-col gap-1">
-          <div className="w-8 h-8 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center">
-            <TrendingUp size={15} className="text-emerald-500" />
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">Em Estoque</p>
-          <p className="text-base font-black text-gray-800 dark:text-slate-100 leading-none truncate">{formatCurrency(stats.totalValue)}</p>
-        </div>
-        <div className={`border rounded-2xl p-3 flex flex-col gap-1 ${
-          stats.lowStock > 0
-            ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/40'
-            : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800'
-        }`}>
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-            stats.lowStock > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-gray-50 dark:bg-slate-800'
-          }`}>
-            <ShieldAlert size={15} className={stats.lowStock > 0 ? 'text-amber-500' : 'text-gray-400 dark:text-slate-500'} />
-          </div>
-          <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">Alertas</p>
-          <p className={`text-xl font-black leading-none ${stats.lowStock > 0 ? 'text-amber-500' : 'text-gray-800 dark:text-slate-100'}`}>{stats.lowStock}</p>
-        </div>
-      </div>
 
       {/* Search + add */}
       <div className="flex items-center gap-2 w-full min-w-0">

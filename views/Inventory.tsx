@@ -154,6 +154,11 @@ const Inventory: React.FC<InventoryProps> = ({
     });
   }, [products, searchTerm, filterCategory]);
 
+  const getCategoryIcon = (category: string) => {
+    const cat = CATEGORIES.find(c => c.value === category);
+    return cat?.icon ?? <Sparkles size={18} />;
+  };
+
   const FilterChip: React.FC<{ label: string }> = ({ label }) => (
     <button
       onClick={() => setFilterCategory(label)}
@@ -277,24 +282,24 @@ const Inventory: React.FC<InventoryProps> = ({
                       : 'border-gray-50 dark:border-slate-900 bg-white dark:bg-[#0f172a]'
                   }`}
                 >
-                  <div 
+                  <div
                     className="flex items-center gap-4 p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-800/50 transition-colors"
                     onClick={() => toggleExpand(product.id)}
                   >
-                    <div className="flex-1 overflow-hidden">
-                      <div className="flex justify-between items-start mb-1">
-                        <div className="flex-1 pr-2 overflow-hidden">
-                          <h4 className="font-bold text-gray-800 dark:text-slate-100 truncate group-hover:text-rose-500 transition-colors">{product.name}</h4>
-                          <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">{product.category}</p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <span className="block font-black text-rose-500 dark:text-rose-400 text-sm leading-none">{formatCurrency(product.price)}</span>
-                          <span className={`text-[10px] font-bold mt-1 block ${product.stock <= product.minStock ? 'text-amber-500' : 'text-gray-400 dark:text-slate-500'}`}>
-                            Qtd: {product.stock}
-                          </span>
-                        </div>
+                    <div className="w-12 h-12 bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 rounded-2xl flex items-center justify-center shrink-0">
+                      {getCategoryIcon(product.category)}
+                    </div>
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-bold text-gray-800 dark:text-slate-100 truncate">{product.name}</h4>
+                        <span className="font-black text-rose-500 dark:text-rose-400 text-sm shrink-0">{formatCurrency(product.price)}</span>
                       </div>
-                      
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider truncate">{product.category}</p>
+                        <span className={`text-[10px] font-bold shrink-0 ${product.stock <= product.minStock ? 'text-amber-500' : 'text-gray-400 dark:text-slate-500'}`}>
+                          Qtd: {product.stock}
+                        </span>
+                      </div>
                       {product.stock <= product.minStock && (
                         <div className="mt-1 flex items-center gap-1 text-[9px] font-black text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md w-fit border border-amber-100/50 dark:border-amber-800/50">
                           <AlertCircle size={10} />
@@ -303,7 +308,7 @@ const Inventory: React.FC<InventoryProps> = ({
                       )}
                     </div>
 
-                    <div className={`text-gray-300 dark:text-slate-700 transition-transform duration-300 ${isExpanded ? 'rotate-90 text-rose-500' : ''}`}>
+                    <div className={`text-gray-300 dark:text-slate-700 transition-transform duration-300 shrink-0 ${isExpanded ? 'rotate-90 text-rose-500' : ''}`}>
                       <ChevronRight size={20} />
                     </div>
                   </div>

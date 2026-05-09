@@ -168,9 +168,9 @@ const Inventory: React.FC<InventoryProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+    <div className="flex flex-col gap-4 w-full min-w-0 overflow-x-hidden">
+      <div className="flex items-center gap-2 w-full min-w-0">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" size={18} />
           <input
             placeholder="Buscar produto..."
@@ -181,13 +181,13 @@ const Inventory: React.FC<InventoryProps> = ({
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="bg-rose-500 text-white p-3 rounded-2xl shadow-sm active:scale-95 transition-all"
+          className="bg-rose-500 text-white p-3 rounded-2xl shadow-sm active:scale-95 transition-all shrink-0"
         >
           <PackagePlus size={20} />
         </button>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-mask">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-mask w-full min-w-0">
         <div className="flex gap-2">
           <FilterChip label="Todos" />
           {CATEGORIES.map(cat => (
@@ -258,8 +258,8 @@ const Inventory: React.FC<InventoryProps> = ({
         </Card>
       )}
 
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-8">
+      <div className="flex flex-col gap-6 w-full min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pb-8 w-full min-w-0">
           {filtered.length === 0 ? (
             <div className="col-span-full py-12 text-center text-gray-400 dark:text-slate-600 italic">
               {searchTerm ? `Nenhum produto com "${searchTerm}"` : 'Nenhum produto corresponde aos filtros.'}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kegestao-v1.6';
+const CACHE_NAME = 'kegestao-v1.7';
 const OFFLINE_URL = '/';
 
 const ASSETS_TO_CACHE = [

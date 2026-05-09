@@ -68,7 +68,7 @@ const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       {/* ── Main area (pushed right on desktop) ── */}
-      <div className="flex flex-col flex-1 lg:ml-60 min-h-screen">
+      <div className="flex flex-col flex-1 lg:ml-60 min-h-screen overflow-x-hidden">
 
         {/* Header */}
         <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm px-4 lg:px-6 h-16 flex items-center justify-between">
@@ -79,7 +79,7 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main content */}
-        <main className="flex-1 p-4 lg:p-8 w-full max-w-md lg:max-w-none mx-auto animate-fade-in pb-20 lg:pb-10">
+        <main className="flex-1 p-4 lg:p-8 w-full max-w-md lg:max-w-none mx-auto animate-fade-in pb-20 lg:pb-10 overflow-x-hidden">
           {children}
         </main>
       </div>

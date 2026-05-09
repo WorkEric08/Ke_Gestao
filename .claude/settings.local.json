@@ -10,7 +10,9 @@
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Pichau\\\\Desktop\\\\Ke_Gestão_1\" -Recurse -Include \"*.jsx\",\"*.js\",\"*.tsx\",\"*.ts\",\"*.vue\" -Exclude \"*node_modules*\")",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Pichau\\\\Desktop\\\\Ke_Gestão_1\" -Recurse -File)",
+      "Bash(Select-Object -First 30)"
     ]
   }
 }

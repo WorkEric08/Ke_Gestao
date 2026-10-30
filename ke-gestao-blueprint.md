@@ -164,3 +164,11 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
 - **Build:** o HTML pré-carrega a fonte e os pedaços das telas (`startupPreloadPlugin` em `vite.config.ts`).
 - **Teste:** a chave `localStorage['ke:sem-splash'] = '1'` desliga o splash (senão ele intercepta o toque dos testes de tela).
 - **Ícone:** `design/icone_batom.png` é a origem; `public/` tem icon-192, icon-512, icon-maskable-512 (full-bleed), apple-touch-icon e favicon-32.
+
+### 30/10/2026 — Empacotamento em APK (Capacitor)
+- **Como:** Capacitor 8 (`capacitor.config.ts`, `appId com.kegestao.app` — **nunca mudar**). `npm run apk:debug` / `apk:release` geram o APK em `release/`. Detalhes e comandos no `README.md`.
+- **Um `dist/`, dois destinos:** `build:android` liga `VITE_ANDROID=1` (decisão de build) e **não leva service worker nem `version.json`**: o app já está em disco.
+- **Nativo em `services/native/`** (com fallback web): botão voltar do Android (`core/navigation.ts` decide o destino; na tela inicial fecha o app) e cor da janela/barras por tema (plugin local `WindowColors`).
+- **Só do PWA, escondido no APK:** cartão "Instalar no dispositivo" e a checagem de atualização do "Informações do sistema".
+- **Otimização do release:** R8 (`minifyEnabled`) + `shrinkResources`, só os idiomas en/pt-BR, imagens de splash do template removidas, abertura nativa preta sem ícone.
+- **`android/` não é versionado:** tudo que é nosso está em `native/android/` e `scripts/android-patch.mjs` (idempotente). A chave de assinatura fica em `~/.kegestao/`, fora do projeto.

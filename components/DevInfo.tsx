@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
+import { isNative } from '../services/native/platform';
 import {
   X,
   GitCommit,
@@ -49,6 +50,9 @@ const formatDateTime = (iso: string) => {
   }
 };
 
+// No APK a atualização é pelo próprio pacote (não há version.json nem service worker para checar).
+const CAN_CHECK_UPDATES = !isNative();
+
 const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
   const [checking, setChecking] = useState(false);
   const [remote, setRemote] = useState<VersionPayload | null>(null);
@@ -75,7 +79,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
   // Auto-check ao abrir
   useEffect(() => {
     if (open) {
-      checkForUpdates();
+      if (CAN_CHECK_UPDATES) checkForUpdates();
     } else {
       setError(null);
       setRemote(null);
@@ -171,6 +175,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
             </div>
           </section>
 
+          {CAN_CHECK_UPDATES && (
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Atualizações</h4>
@@ -241,6 +246,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
               {checking ? 'Verificando...' : 'Verificar novamente'}
             </button>
           </section>
+          )}
         </div>
       </div>
     </div>

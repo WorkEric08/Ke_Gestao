@@ -157,7 +157,8 @@ export default defineConfig(() => {
       port: 3000,
       host: '0.0.0.0',
     },
-    plugins: [react(), versionJsonPlugin(version, git, buildTime), precachePlugin(), startupPreloadPlugin()],
+    // O APK (VITE_ANDROID=1) não leva service worker: sem lista de pré-cache.
+    plugins: [react(), versionJsonPlugin(version, git, buildTime), ...(process.env.VITE_ANDROID === '1' ? [] : [precachePlugin()]), startupPreloadPlugin()],
     test: {
       include: ['core/**/*.test.ts', 'services/**/*.test.ts']
     },

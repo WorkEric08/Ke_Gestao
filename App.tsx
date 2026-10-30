@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import { HomeAppBar } from './components/AppBar';
 import { routes } from './views/routes';
 import { markRendered } from './services/startup';
+import { onBackButton } from './services/native/backButton';
+import { isNative } from './services/native/platform';
+import { backTarget } from './core/navigation';
 import Dashboard from './views/Dashboard';
 
 // Só o Dashboard (tela inicial) vai no pacote principal; as demais views carregam sob demanda.
@@ -150,6 +153,7 @@ const App: React.FC = () => {
             canInstall={!!deferredPrompt}
             onInstall={handleInstallApp}
             isInstalled={isAppInstalled}
+            showInstall={!isNative()}
             isIOS={isIOS}
             isDark={data.profile.theme === 'dark'}
             toggleTheme={toggleTheme}
@@ -196,6 +200,16 @@ const App: React.FC = () => {
       onNotifications={() => setCurrentView('debtors')}
     />
   ) : undefined;
+
+  // Botão "voltar" do Android: a navegação é por estado, então ele precisa saber para onde ir (ou fechar o app).
+  const viewRef = useRef(currentView);
+  viewRef.current = currentView;
+  useEffect(() => onBackButton(() => {
+    const target = backTarget(viewRef.current);
+    if (!target) return false;
+    setCurrentView(target);
+    return true;
+  }), [setCurrentView]);
 
   // Avisa o splash que a primeira tela pronta já foi montada (ele espera a pintura).
   useEffect(() => {

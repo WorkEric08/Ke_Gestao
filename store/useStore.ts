@@ -8,6 +8,7 @@ import { startOfDay } from '../core/time';
 import { boot } from '../services/boot';
 import type { Repository } from '../services/repository';
 import { MANUAL_KEY, Theme, resolveTheme, saveManualTheme } from '../services/theme';
+import { applyWindowColors } from '../services/native/windowColors';
 
 const DAY_CHECK_MS = 60_000;
 
@@ -73,6 +74,7 @@ export const useStore = () => {
     document.documentElement.classList.toggle('dark', dark);
     // A barra de status do Android/PWA segue o tema do app (e não só o do sistema) quando ele é trocado à mão.
     document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', dark ? '#000000' : '#FFF8F8'));
+    applyWindowColors(dark); // no APK: fundo da janela e barras do sistema (no PWA a barra é do navegador)
   }, [ready, data.profile.theme]);
 
   useEffect(() => {

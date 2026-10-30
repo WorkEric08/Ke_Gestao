@@ -9,6 +9,7 @@ interface ProfileProps {
   canInstall?: boolean;
   onInstall?: () => void;
   isInstalled?: boolean;
+  showInstall?: boolean;
   isIOS?: boolean;
   isDark: boolean;
   toggleTheme: () => void;
@@ -98,7 +99,7 @@ const FieldRow = memo<FieldRowProps>(({ icon, label, value, onSave }) => {
   );
 });
 
-const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isDark, toggleTheme }) => {
+const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, showInstall = true, isIOS, isDark, toggleTheme }) => {
   const [installFeedback, setInstallFeedback] = useState<string | null>(null);
   const [devInfoOpen, setDevInfoOpen] = useState(false);
 
@@ -131,7 +132,7 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
       </div>
 
       {/* Instalar */}
-      {isInstalled ? (
+      {!showInstall ? null : isInstalled ? (
         <div className="bg-success-container text-on-success-container rounded-[28px] p-5 flex items-center gap-4">
           <span className="shrink-0 w-12 h-12 rounded-full bg-success text-success-container flex items-center justify-center">
             <Icon name="check" />

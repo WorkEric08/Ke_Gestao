@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# APK: android/ é gerado (npm run android:init); o que é nosso fica em native/ e scripts/
+android/
+release/
+keystore.properties
+*.keystore

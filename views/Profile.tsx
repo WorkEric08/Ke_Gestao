@@ -1,8 +1,6 @@
-
-import React, { useState, memo, useCallback } from 'react';
-import { Card, Input, Button } from '../components/UI';
-import { UserCircle, Save, CheckCircle2, Download, Smartphone, Moon, Sun, Info } from 'lucide-react';
-import { UserProfile, View } from '../types';
+import React, { useState, useRef, memo, useCallback } from 'react';
+import { Icon, IconName } from '../components/Icon';
+import { UserProfile } from '../types';
 import DevInfo from '../components/DevInfo';
 
 interface ProfileProps {
@@ -12,18 +10,95 @@ interface ProfileProps {
   onInstall?: () => void;
   isInstalled?: boolean;
   isIOS?: boolean;
-  isAndroid?: boolean;
-  setView: (view: View) => void;
   isDark: boolean;
   toggleTheme: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isAndroid, setView, isDark, toggleTheme }) => {
-  const [formData, setFormData] = useState({
-    name: profile.name,
-    businessName: profile.businessName
-  });
-  const [isSaved, setIsSaved] = useState(false);
+const SUBHEADER = 'px-4 pt-2 text-sm leading-5 font-medium text-primary';
+const GROUP = 'bg-surface-low rounded-[28px] py-1 flex flex-col';
+const ROW = 'min-h-16 pl-5 pr-4 flex items-center gap-4 text-left';
+
+// Interruptor do Material 3: 52 × 32; desligado tem contorno e bolinha de 16, ligado vira primário com bolinha de 24.
+const SwitchTrack: React.FC<{ on: boolean }> = ({ on }) => (
+  <span
+    aria-hidden="true"
+    className={`relative shrink-0 w-[52px] h-8 rounded-full transition-colors ${
+      on ? 'bg-primary' : 'bg-surface-highest border-2 border-outline'
+    }`}
+  >
+    <span
+      className={`absolute rounded-full transition-all ${
+        on ? 'left-6 top-1 w-6 h-6 bg-on-primary' : 'left-1.5 top-1.5 w-4 h-4 bg-outline'
+      }`}
+    />
+  </span>
+);
+
+interface FieldRowProps {
+  icon: IconName;
+  label: string;
+  value: string;
+  onSave: (value: string) => void;
+}
+
+// A linha mostra o valor; tocar nela vira um campo. Salva ao sair do campo ou no Enter; Esc cancela.
+const FieldRow = memo<FieldRowProps>(({ icon, label, value, onSave }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const cancelled = useRef(false);
+
+  const start = () => {
+    cancelled.current = false;
+    setDraft(value);
+    setEditing(true);
+  };
+
+  const finish = () => {
+    setEditing(false);
+    const next = draft.trim();
+    if (!cancelled.current && next !== value) onSave(next);
+  };
+
+  if (!editing) {
+    return (
+      <button type="button" onClick={start} className={`${ROW} w-full active:bg-surface-high transition-colors`}>
+        <span className="text-on-surface-variant flex"><Icon name={icon} /></span>
+        <span className="flex-1 min-w-0 flex flex-col">
+          <span className="text-xs leading-4 text-on-surface-variant">{label}</span>
+          <span className="text-base leading-6 truncate">{value || 'Toque para preencher'}</span>
+        </span>
+        <span className="text-on-surface-variant flex"><Icon name="chevron" /></span>
+      </button>
+    );
+  }
+
+  return (
+    <label className={`${ROW} w-full bg-surface-high`}>
+      <span className="text-on-surface-variant flex"><Icon name={icon} /></span>
+      <span className="flex-1 min-w-0 flex flex-col">
+        <span className="text-xs leading-4 text-primary">{label}</span>
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={finish}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Escape') {
+              cancelled.current = true;
+              e.currentTarget.blur();
+            }
+          }}
+          autoComplete="off"
+          enterKeyHint="done"
+          className="bg-transparent outline-none text-base leading-6 text-on-surface w-full"
+        />
+      </span>
+    </label>
+  );
+});
+
+const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, onInstall, isInstalled, isIOS, isDark, toggleTheme }) => {
   const [installFeedback, setInstallFeedback] = useState<string | null>(null);
   const [devInfoOpen, setDevInfoOpen] = useState(false);
 
@@ -36,165 +111,107 @@ const Profile: React.FC<ProfileProps> = ({ profile, updateProfile, canInstall, o
     setTimeout(() => setInstallFeedback(null), 10000);
   }, [canInstall, onInstall]);
 
-  const handleSave = useCallback(() => {
-    updateProfile({
-      ...profile,
-      name: formData.name,
-      businessName: formData.businessName
-    });
-    setIsSaved(true);
-    setTimeout(() => {
-      setView('dashboard');
-    }, 1200);
-  }, [profile, formData, updateProfile, setView]);
+  const saveName = useCallback((name: string) => updateProfile({ ...profile, name }), [profile, updateProfile]);
+  const saveBusiness = useCallback((businessName: string) => updateProfile({ ...profile, businessName }), [profile, updateProfile]);
+
+  const initial = (profile.name.trim()[0] ?? 'K').toUpperCase();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-2 py-4">
-        <div className="w-24 h-24 bg-rose-100 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400 rounded-3xl flex items-center justify-center">
-          <UserCircle size={64} />
+    <div className="flex flex-col gap-3">
+
+      {/* Identidade */}
+      <div className="px-1 pb-1 flex items-center gap-4">
+        <span className="w-14 h-14 rounded-full bg-primary-container text-on-primary-container text-2xl font-medium flex items-center justify-center">
+          {initial}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="text-base leading-6 font-medium truncate">{profile.name || 'Sua conta'}</span>
+          <span className="text-sm leading-5 text-on-surface-variant truncate">{profile.businessName}</span>
         </div>
-        <h2 className="text-xl font-bold dark:text-slate-100">
-          {profile.name || 'Sua Conta'}
-        </h2>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Aplicativo</h3>
-
-        {isInstalled ? (
-          <Card className="flex items-center gap-3 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
-            <div className="p-2 bg-emerald-500 text-white rounded-xl">
-              <CheckCircle2 size={20} />
-            </div>
+      {/* Instalar */}
+      {isInstalled ? (
+        <div className="bg-success-container text-on-success-container rounded-[28px] p-5 flex items-center gap-4">
+          <span className="shrink-0 w-12 h-12 rounded-full bg-success text-success-container flex items-center justify-center">
+            <Icon name="check" />
+          </span>
+          <div className="flex flex-col">
+            <span className="text-base leading-6 font-medium">App instalado</span>
+            <span className="text-sm leading-5 opacity-85">Ke Gestão está na sua tela inicial</span>
+          </div>
+        </div>
+      ) : isIOS ? (
+        <div className="bg-primary-container text-on-primary-container rounded-[28px] p-5 flex flex-col gap-4">
+          <div className="flex flex-col">
+            <span className="text-base leading-6 font-medium">Instalar no iPhone / iPad</span>
+            <span className="text-sm leading-5 opacity-85">Adicione à tela inicial pelo Safari</span>
+          </div>
+          <ol className="flex flex-col gap-2 text-sm leading-5 list-decimal pl-5">
+            <li>Toque no ícone de compartilhar na barra do Safari</li>
+            <li>Selecione <strong>"Adicionar à Tela de Início"</strong></li>
+            <li>Confirme tocando em <strong>"Adicionar"</strong></li>
+          </ol>
+        </div>
+      ) : (
+        <div className="bg-primary-container text-on-primary-container rounded-[28px] p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <span className="shrink-0 w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center">
+              <Icon name="download" />
+            </span>
             <div className="flex flex-col">
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">App Instalado</p>
-              <p className="text-[10px] text-slate-500">Ke Gestão está na sua tela inicial</p>
+              <span className="text-base leading-6 font-medium">Instalar no dispositivo</span>
+              <span className="text-sm leading-5 opacity-85">Acesse offline e tenha o ícone na tela inicial</span>
             </div>
-          </Card>
-        ) : isIOS ? (
-          <Card className="flex flex-col gap-4 border-2 border-sky-100 dark:border-sky-900/30 bg-sky-50/30 dark:bg-sky-900/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-sky-500 text-white rounded-xl">
-                <Smartphone size={20} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no iPhone / iPad</p>
-                <p className="text-[10px] text-slate-500">Adicione à tela inicial pelo Safari</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 text-xs text-slate-600 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">1</span>
-                <span>Toque no ícone de compartilhar na barra do Safari</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">2</span>
-                <span>Selecione <strong>"Adicionar à Tela de Início"</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold text-[10px] shrink-0">3</span>
-                <span>Confirme tocando em <strong>"Adicionar"</strong></span>
-              </div>
-            </div>
-          </Card>
-        ) : (
-          <Card className="flex flex-col gap-4 border-2 border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500 text-white rounded-xl">
-                <Download size={20} />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Instalar no Dispositivo</p>
-                <p className="text-[10px] text-slate-500">
-                  {canInstall
-                    ? 'Acesse offline e tenha ícone na tela inicial'
-                    : isAndroid
-                      ? 'Toque para instalar o Ke Gestão no seu Android'
-                      : 'Instale para acessar offline e ter ícone na tela inicial'}
-                </p>
-              </div>
-            </div>
-
-            <Button
-              variant="primary"
-              fullWidth
-              onClick={handleInstallClick}
-              className="bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200"
-            >
-              <Download size={18} /> Instalar Ke Gestão
-            </Button>
-
-            {installFeedback && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 leading-relaxed">
-                {installFeedback}
-              </p>
-            )}
-          </Card>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Preferências</h3>
-        <Card className="flex flex-col gap-2">
+          </div>
           <button
-            onClick={toggleTheme}
-            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
+            onClick={handleInstallClick}
+            className="h-12 rounded-full bg-primary text-on-primary text-sm font-medium tracking-[0.1px] flex items-center justify-center gap-2 active:opacity-90"
           >
-            {isDark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-400" />}
-            <span>{isDark ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}</span>
+            <Icon name="download" size={18} />
+            Instalar Ke Gestão
           </button>
-          <button
-            onClick={() => setDevInfoOpen(true)}
-            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-slate-800/60 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
-          >
-            <Info size={18} className="text-rose-400" />
-            <span>Informações do Sistema</span>
-          </button>
-        </Card>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">Configurações do Perfil</h3>
-        <Card className="flex flex-col gap-4">
-          <Input 
-            label="Seu Nome" 
-            placeholder="Ex: Coloque seu primeiro nome"
-            value={formData.name} 
-            onChange={e => setFormData({...formData, name: e.target.value})} 
-          />
-          <Input 
-            label="Nome do Negócio" 
-            placeholder="Ex: Gestão e vendas"
-            value={formData.businessName} 
-            onChange={e => setFormData({...formData, businessName: e.target.value})} 
-          />
-        </Card>
-      </section>
-
-      <div className="mt-4 flex flex-col gap-4">
-        <Button 
-          variant={isSaved ? "secondary" : "primary"} 
-          fullWidth 
-          onClick={handleSave}
-          className={isSaved ? "text-emerald-500 dark:text-emerald-400" : ""}
-          disabled={isSaved}
-        >
-          {isSaved ? (
-            <>
-              <CheckCircle2 size={20} /> Alterações Salvas
-            </>
-          ) : (
-            <>
-              <Save size={20} /> Salvar Alterações
-            </>
+          {installFeedback && (
+            <p role="status" className="text-xs leading-4 rounded-xl bg-warn-container text-on-warn-container p-3">{installFeedback}</p>
           )}
-        </Button>
-        
-        <p className="text-center text-[10px] text-gray-400 dark:text-slate-600">
-          Ke Gestão v1.5.0 • Perfil do Sucesso
-        </p>
+        </div>
+      )}
+
+      {/* Preferências */}
+      <h2 className={SUBHEADER}>Preferências</h2>
+      <div className={GROUP}>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isDark}
+          onClick={toggleTheme}
+          className={`${ROW} w-full active:bg-surface-high transition-colors`}
+        >
+          <span className="text-on-surface-variant flex"><Icon name="moon" /></span>
+          <span className="flex-1 flex flex-col">
+            <span className="text-base leading-6">Modo escuro</span>
+            <span className="text-xs leading-4 text-on-surface-variant">Segue o sistema até você escolher</span>
+          </span>
+          <SwitchTrack on={isDark} />
+        </button>
+        <button type="button" onClick={() => setDevInfoOpen(true)} className={`${ROW} w-full active:bg-surface-high transition-colors`}>
+          <span className="text-on-surface-variant flex"><Icon name="info" /></span>
+          <span className="flex-1 flex flex-col">
+            <span className="text-base leading-6">Informações do sistema</span>
+            <span className="text-xs leading-4 text-on-surface-variant">Versão e atualizações</span>
+          </span>
+          <span className="text-on-surface-variant flex"><Icon name="chevron" /></span>
+        </button>
       </div>
+
+      {/* Dados do perfil */}
+      <h2 className={SUBHEADER}>Configurações do perfil</h2>
+      <div className={GROUP}>
+        <FieldRow icon="person" label="Seu nome" value={profile.name} onSave={saveName} />
+        <FieldRow icon="store" label="Nome do negócio" value={profile.businessName} onSave={saveBusiness} />
+      </div>
+
+      <p className="pt-1 text-center text-xs leading-4 tracking-[0.4px] text-on-surface-variant">Ke Gestão v1.5.0</p>
 
       <DevInfo open={devInfoOpen} onClose={() => setDevInfoOpen(false)} />
     </div>

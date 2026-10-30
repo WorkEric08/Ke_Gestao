@@ -6,7 +6,14 @@ export interface Reminder {
   id: string;
   customerName: string;
   amount: number;
+  installmentNumber: number;
+  installmentCount: number;
 }
+
+const MONTHS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+
+// '2026-09' -> 'SET/26'. Texto fixo (sem Intl): o rótulo não muda com o navegador.
+export const monthLabel = (key: string): string => `${MONTHS[Number(key.slice(5, 7)) - 1]}/${key.slice(2, 4)}`;
 
 export const dashboardStats = (
   data: Pick<AppData, 'sales' | 'installments' | 'products' | 'customers'>,
@@ -41,7 +48,7 @@ export const dashboardStats = (
 
   const receivablesByMonth = keys.map(key => ({
     key,
-    label: new Date(`${key}-02`).toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', ''),
+    label: monthLabel(key),
     total: monthly.get(key)!,
     isCurrent: key === currentKey
   }));
@@ -67,12 +74,17 @@ export const todayReminders = (
   now: number
 ): Reminder[] => {
   const customerName = new Map(data.customers.map(c => [c.id, c.name]));
-  const customerOfSale = new Map(data.sales.map(s => [s.id, s.customerId]));
+  const saleById = new Map(data.sales.map(s => [s.id, s]));
   return data.installments
     .filter(ins => !ins.paidAt && isDueToday(ins.dueDate, now))
-    .map(ins => ({
-      id: ins.id,
-      customerName: customerName.get(customerOfSale.get(ins.saleId) ?? '') ?? 'Cliente',
-      amount: ins.amount
-    }));
+    .map(ins => {
+      const sale = saleById.get(ins.saleId);
+      return {
+        id: ins.id,
+        customerName: customerName.get(sale?.customerId ?? '') ?? 'Cliente',
+        amount: ins.amount,
+        installmentNumber: ins.number,
+        installmentCount: sale?.installments ?? ins.number
+      };
+    });
 };

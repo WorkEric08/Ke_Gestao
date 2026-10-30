@@ -237,8 +237,8 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                       key={customer.id} 
                       className={`flex flex-col gap-0 p-0 overflow-hidden transition-all duration-300 border ${
                         isExpanded 
-                          ? 'border-rose-100 dark:border-rose-900 shadow-lg bg-white dark:bg-[#111827]' 
-                          : 'border-gray-50 dark:border-slate-900 bg-white dark:bg-[#0f172a]'
+                          ? 'border-rose-100 dark:border-rose-900 shadow-lg bg-white dark:bg-slate-900' 
+                          : 'border-gray-50 dark:border-slate-900 bg-white dark:bg-slate-900'
                       }`}
                     >
                       <div 
@@ -265,7 +265,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                       </div>
 
                       {isExpanded && (
-                        <div className="bg-gray-50/50 dark:bg-[#0b0f19] px-4 pb-4 pt-3 border-t border-gray-100 dark:border-slate-800/50 animate-fade-in">
+                        <div className="bg-gray-50/50 dark:bg-slate-950 px-4 pb-4 pt-3 border-t border-gray-100 dark:border-slate-800/50 animate-fade-in">
                           <div className="flex flex-col gap-3">
                             <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 dark:text-slate-600 uppercase tracking-widest px-1">
                               <span>Ações Rápidas</span>
@@ -283,7 +283,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                                 onClick={() => onEdit(customer.id)}
                                 title="Editar"
                                 aria-label="Editar cliente"
-                                className="w-14 h-11 flex items-center justify-center bg-white dark:bg-[#1f2937] border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-xl active:scale-95 transition-all"
+                                className="w-14 h-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-xl active:scale-95 transition-all"
                               >
                                 <Edit2 size={18} />
                               </button>
@@ -292,7 +292,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                                 onClick={() => handleDelete(customer.id, customer.name)}
                                 title="Excluir"
                                 aria-label="Excluir cliente"
-                                className="w-14 h-11 flex items-center justify-center bg-white dark:bg-[#1f2937] border border-rose-100 dark:border-rose-900/50 text-rose-500 dark:text-rose-400 rounded-xl active:scale-95 transition-all group"
+                                className="w-14 h-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-rose-100 dark:border-rose-900/50 text-rose-500 dark:text-rose-400 rounded-xl active:scale-95 transition-all group"
                               >
                                 <Trash2 size={18} className="group-active:scale-110 transition-transform" />
                               </button>

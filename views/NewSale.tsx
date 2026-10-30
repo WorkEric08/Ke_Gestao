@@ -278,7 +278,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                 )}
               </div>
 
-              <div className="flex gap-2 mt-2 sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 -mx-4 px-4 py-3 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur border-t border-gray-100 dark:border-slate-800 lg:static lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
+              <div className="flex gap-2 mt-2 sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 -mx-4 px-4 py-3 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur border-t border-gray-100 dark:border-slate-800 lg:static lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
                 <Button variant="secondary" onClick={() => setStep(1)} aria-label="Voltar para a escolha do cliente" className="px-5 h-12"><ArrowLeft size={18} /></Button>
                 <Button fullWidth disabled={cartItems.length === 0} onClick={() => setStep(3)} className="h-12 text-sm font-black tracking-tight">
                   Revisar Pagamento{cartItems.length > 0 && <span className="tabular-nums"> · {formatCurrency(total)}</span>}
@@ -353,7 +353,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
 
             {/* Right: Summary + CTA */}
             <div className="flex flex-col gap-4">
-              <Card className="bg-slate-900 dark:bg-[#1e293b] border-none text-white p-6 shadow-2xl">
+              <Card className="bg-slate-900 dark:bg-slate-800 border-none text-white p-6 shadow-2xl">
                 <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
                   <div className="flex flex-col">
                     <span className="text-xs text-white/50 font-bold uppercase tracking-widest">Total</span>

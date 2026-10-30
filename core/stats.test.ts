@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Customer, Installment, Product, Sale } from '../types';
-import { dashboardStats, todayReminders } from './stats';
+import { dashboardStats, monthLabel, todayReminders } from './stats';
 
 const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime();
 const NOW = at(2026, 6, 15, 15);
@@ -61,8 +61,24 @@ describe('dashboardStats', () => {
   });
 });
 
+describe('monthLabel', () => {
+  it('mês em maiúsculas e ano com dois dígitos', () => {
+    expect(monthLabel('2026-09')).toBe('SET/26');
+    expect(monthLabel('2027-02')).toBe('FEV/27');
+    expect(monthLabel('2026-12')).toBe('DEZ/26');
+  });
+
+  it('o cronograma usa esse rótulo', () => {
+    const stats = dashboardStats({
+      customers: [], products: [], sales: [],
+      installments: [{ id: 'i', saleId: 's', number: 1, amount: 5, dueDate: new Date(2026, 8, 10).getTime() }]
+    }, NOW);
+    expect(stats.receivablesByMonth[0].label).toBe('SET/26');
+  });
+});
+
 describe('todayReminders', () => {
-  const sales = [sale('a', 1, 1)];
+  const sales = [{ ...sale('a', 1, 1), installments: 3 }];
 
   it('só parcelas em aberto que vencem hoje, com o nome do cliente', () => {
     const list = todayReminders({
@@ -73,7 +89,7 @@ describe('todayReminders', () => {
         ins('amanha', 'a', 10, at(2026, 6, 16, 8))
       ]
     }, NOW);
-    expect(list).toEqual([{ id: 'hoje', customerName: 'Ana', amount: 10 }]);
+    expect(list).toEqual([{ id: 'hoje', customerName: 'Ana', amount: 10, installmentNumber: 1, installmentCount: 3 }]);
   });
 
   it('cliente apagado vira "Cliente"', () => {

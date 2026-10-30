@@ -67,7 +67,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-stretch lg:items-center lg:justify-center lg:bg-black/40 lg:backdrop-blur-sm animate-fade-in">
-    <div className="bg-white dark:bg-[#020617] flex flex-col w-full h-[100dvh] lg:h-auto lg:max-h-[85vh] lg:max-w-xl lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
+    <div className="bg-white dark:bg-slate-950 flex flex-col w-full h-[100dvh] lg:h-auto lg:max-h-[85vh] lg:max-w-xl lg:rounded-3xl lg:overflow-hidden lg:shadow-2xl">
       {/* Header Compacto */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 px-4 h-14 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div className="flex flex-col">
@@ -84,7 +84,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
       </div>
 
       {/* Busca e Filtros */}
-      <div className="p-3 flex flex-col gap-3 bg-white dark:bg-[#020617] sticky top-14 z-20">
+      <div className="p-3 flex flex-col gap-3 bg-white dark:bg-slate-950 sticky top-14 z-20">
         <div className="flex items-center gap-2">
           <div className="relative flex-1 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 transition-colors group-focus-within:text-rose-500" size={16} />
@@ -137,7 +137,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
       </div>
 
       {/* Listagem com Cards Menores */}
-      <div className="flex-1 overflow-y-auto px-3 pb-20 beauty-scroll bg-slate-50 dark:bg-[#020617]">
+      <div className="flex-1 overflow-y-auto px-3 pb-20 beauty-scroll bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col gap-4 pt-2">
           {Object.keys(groupedCustomers).length === 0 ? (
             <div className="py-20 text-center text-slate-400 flex flex-col items-center gap-4 animate-fade-in">
@@ -150,7 +150,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
           ) : (
             Object.keys(groupedCustomers).sort().map(letter => (
               <div key={letter} className="flex flex-col gap-2 animate-fade-in">
-                <div className="flex items-center gap-2 px-1 sticky top-0 z-10 py-1 bg-slate-50 dark:bg-[#020617]">
+                <div className="flex items-center gap-2 px-1 sticky top-0 z-10 py-1 bg-slate-50 dark:bg-slate-950">
                   <span className="text-[10px] font-black text-rose-500/30 dark:text-rose-400/20 uppercase tracking-[0.2em]">{letter}</span>
                   <div className="flex-1 h-px bg-slate-200 dark:bg-slate-900/50"></div>
                 </div>

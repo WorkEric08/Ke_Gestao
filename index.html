@@ -9,8 +9,8 @@
 
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta id="theme-meta-light" name="theme-color" media="(prefers-color-scheme: light)" content="#f43f5e">
-    <meta id="theme-meta-dark"  name="theme-color" media="(prefers-color-scheme: dark)"  content="#020617">
+    <meta id="theme-meta-light" name="theme-color" media="(prefers-color-scheme: light)" content="#FFF8F8">
+    <meta id="theme-meta-dark"  name="theme-color" media="(prefers-color-scheme: dark)"  content="#000000">
 
     <!-- iOS Specific -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,7 +44,7 @@
 
         var isDark = theme === 'dark';
         document.documentElement.classList.toggle('dark', isDark);
-        var color = isDark ? '#020617' : '#f43f5e';
+        var color = isDark ? '#000000' : '#FFF8F8';
         var metaLight = document.getElementById('theme-meta-light');
         var metaDark = document.getElementById('theme-meta-dark');
         if (metaLight) metaLight.setAttribute('content', color);
@@ -65,7 +65,7 @@
       });
     </script>
 </head>
-<body class="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 select-none">
+<body class="bg-surface text-on-surface select-none">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

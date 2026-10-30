@@ -25,3 +25,18 @@ export const formatPhone = (phone: string) => {
   
   return phone;
 };
+
+// Sem centavos: para indicadores estreitos (um cartão de 120 px), onde "R$ 1.240" cabe e "R$ 1.240,00" não.
+export const formatCurrencyWhole = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0
+  }).format(value);
+};
+
+export const initialsOf = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+};

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
+import { HomeAppBar } from './components/AppBar';
 import Dashboard from './views/Dashboard';
 
 // Só o Dashboard (tela inicial) vai no pacote principal; as demais views carregam sob demanda.
@@ -40,7 +41,6 @@ const App: React.FC = () => {
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-  const isAndroid = /Android/i.test(navigator.userAgent);
 
   useEffect(() => {
     const isStandalone =
@@ -109,7 +109,6 @@ const App: React.FC = () => {
           <Dashboard
             stats={dashboardStats}
             setView={setCurrentView}
-            userName={data.profile.name}
             reminders={todayReminders}
           />
         );
@@ -150,8 +149,6 @@ const App: React.FC = () => {
             onInstall={handleInstallApp}
             isInstalled={isAppInstalled}
             isIOS={isIOS}
-            isAndroid={isAndroid}
-            setView={setCurrentView}
             isDark={data.profile.theme === 'dark'}
             toggleTheme={toggleTheme}
           />
@@ -161,7 +158,6 @@ const App: React.FC = () => {
           <Dashboard
             stats={dashboardStats}
             setView={setCurrentView}
-            userName={data.profile.name}
             reminders={todayReminders}
           />
         );
@@ -178,7 +174,7 @@ const App: React.FC = () => {
       case 'add-product': return 'Estoque';
       case 'new-sale': return 'Nova Venda';
       case 'debtors': return 'Financeiro';
-      case 'profile': return 'Meu Perfil';
+      case 'profile': return 'Perfil';
       default: return 'Ke Gestão';
     }
   }, [currentView, data.profile.businessName]);
@@ -189,6 +185,16 @@ const App: React.FC = () => {
     return currentView;
   }, [currentView]);
 
+  const homeHeader = currentView === 'dashboard' ? (
+    <HomeAppBar
+      userName={data.profile.name}
+      hasReminders={todayReminders.length > 0}
+      onProfile={() => setCurrentView('profile')}
+      onSearch={() => setCurrentView('customers')}
+      onNotifications={() => setCurrentView('debtors')}
+    />
+  ) : undefined;
+
   // Enquanto o banco abre (poucos ms) fica só o fundo; evita mostrar o app vazio e depois "pular".
   if (!ready) return <div className="min-h-dvh bg-gray-50 dark:bg-slate-950" aria-busy="true" />;
 
@@ -197,6 +203,7 @@ const App: React.FC = () => {
       currentView={layoutView}
       setView={setCurrentView}
       title={title}
+      header={homeHeader}
     >
       {saveError && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 p-4 text-sm text-rose-700 dark:text-rose-300">

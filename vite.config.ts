@@ -114,6 +114,39 @@ function precachePlugin(): Plugin {
   };
 }
 
+/**
+ * Põe no HTML o que a abertura vai precisar, para baixar em paralelo com o JS principal em vez de
+ * só depois dele (numa rede lenta isso empurra a abertura do app):
+ *  - a fonte (senão só é descoberta depois do CSS e do texto que a usa);
+ *  - os pedaços das telas carregadas sob demanda (o boot os pede logo ao iniciar).
+ * Os nomes têm hash, então os links saem dos arquivos que o build realmente emitiu.
+ */
+function startupPreloadPlugin(): Plugin {
+  return {
+    name: 'ke-gestao-startup-preload',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        if (!ctx.bundle) return;
+        const tags: { tag: string; attrs: Record<string, string>; injectTo: 'head-prepend' | 'head' }[] = [];
+
+        const font = Object.keys(ctx.bundle).find(f => /roboto-latin-wght-normal.*.woff2$/.test(f));
+        if (font) {
+          tags.push({ tag: 'link', attrs: { rel: 'preload', as: 'font', type: 'font/woff2', href: '/' + font, crossorigin: '' }, injectTo: 'head-prepend' });
+        }
+
+        for (const [file, item] of Object.entries(ctx.bundle)) {
+          if (item.type === 'chunk' && item.isDynamicEntry) {
+            tags.push({ tag: 'link', attrs: { rel: 'modulepreload', crossorigin: '', href: '/' + file }, injectTo: 'head' });
+          }
+        }
+        return tags;
+      }
+    }
+  };
+}
+
 export default defineConfig(() => {
   const git = getGitInfo();
   const version = readPkgVersion();
@@ -124,7 +157,7 @@ export default defineConfig(() => {
       port: 3000,
       host: '0.0.0.0',
     },
-    plugins: [react(), versionJsonPlugin(version, git, buildTime), precachePlugin()],
+    plugins: [react(), versionJsonPlugin(version, git, buildTime), precachePlugin(), startupPreloadPlugin()],
     test: {
       include: ['core/**/*.test.ts', 'services/**/*.test.ts']
     },

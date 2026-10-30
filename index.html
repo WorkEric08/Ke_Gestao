@@ -16,12 +16,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ke Gestão">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 
     <!-- Android/Generic PWA -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Ke Gestão">
+
+    <style>
+      /* Splash: preto, batom centralizado. Largura ≈ 21% da tela e altura ≈ 30% (o menor dos dois limites). */
+      html.splash-on { background: #000; }
+      #splash { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; background: #000; opacity: 1; }
+      #splash.hide { opacity: 0; pointer-events: none; }
+      #sp-svg { display: block; height: auto; aspect-ratio: 68 / 178; overflow: visible; width: min(21vw, calc(30vh * 68 / 178)); width: min(21vw, calc(30dvh * 68 / 178)); }
+    </style>
 
     <script>
       // Aplica o tema antes da primeira pintura (sem piscar). Mesma regra do store:
@@ -66,6 +75,117 @@
     </script>
 </head>
 <body class="bg-surface text-on-surface select-none">
+    <!-- Splash: cores do batom nos atributos fill abaixo; tempos e fade em CFG, no script logo depois. -->
+    <div id="splash" aria-hidden="true">
+      <svg id="sp-svg" viewBox="156 104 68 178" focusable="false">
+        <g id="sp-g">
+          <polygon id="sp-tip" points="172,166 172,126 208,104 208,166" fill="#FF6FA8" transform="translate(0 166) scale(1 0) translate(0 -166)" />
+          <rect id="sp-cap" x="164" y="172" width="52" height="26" fill="#FFC4DC" opacity="0" transform="translate(0 -70)" />
+          <rect id="sp-body" x="156" y="204" width="68" height="78" rx="8" fill="#D62874" opacity="0" transform="translate(0 70)" />
+        </g>
+      </svg>
+    </div>
+    <script>
+      (function () {
+        // ── Ajustes ──────────────────────────────────────────────────────────────
+        // Tempos em ms, desde o primeiro quadro. Distâncias em unidades do desenho (viewBox).
+        var CFG = {
+          total: 2000,          // duração da animação; o splash nunca sai antes disso
+          safety: 6000,         // some mesmo que o app não fique pronto
+          fade: 150,            // fade-out
+          travel: 70,           // corpo vem de baixo / tampa vem de cima
+          body: [210, 670],     // corpo sobe
+          cap: [440, 900],      // tampa desce
+          tip: [780, 1310],     // ponta cresce (ancorada na base, y = 166)
+          pulse: [1540, 1990],  // pulso 1 → 1,03 → 1
+          pulseScale: 0.03
+        };
+        // ─────────────────────────────────────────────────────────────────────────
+        var doc = document, root = doc.documentElement;
+        var el = doc.getElementById('splash');
+        if (!el) return;
+        // Única chave de teste do app: com ela o splash não existe (senão intercepta os toques dos testes de tela).
+        try {
+          if (localStorage.getItem('ke:sem-splash') === '1') {
+            el.parentNode.removeChild(el);
+            window.__splash = { finished: Promise.resolve(), hide: function () {}, seek: function () {}, config: CFG };
+            return;
+          }
+        } catch (e) {}
+        var gBody = doc.getElementById('sp-body'), gCap = doc.getElementById('sp-cap'), gTip = doc.getElementById('sp-tip'), gAll = doc.getElementById('sp-g');
+        var mark = function (n) { try { performance.mark(n); } catch (e) {} };
+
+        root.classList.add('splash-on');
+        // A barra do sistema acompanha o preto durante o splash e volta ao tema depois.
+        var metas = [].slice.call(doc.querySelectorAll('meta[name="theme-color"]'));
+        var savedColors = metas.map(function (m) { return m.getAttribute('content'); });
+        metas.forEach(function (m) { m.setAttribute('content', '#000000'); });
+
+        var ease = function (x) { x = x < 0 ? 0 : x > 1 ? 1 : x; return 1 - Math.pow(1 - x, 3); };
+        var prog = function (t, r) { return ease((t - r[0]) / (r[1] - r[0])); };
+
+        function draw(t) {
+          var b = prog(t, CFG.body);
+          gBody.setAttribute('transform', 'translate(0 ' + ((1 - b) * CFG.travel) + ')');
+          gBody.setAttribute('opacity', b);
+          var c = prog(t, CFG.cap);
+          gCap.setAttribute('transform', 'translate(0 ' + (-(1 - c) * CFG.travel) + ')');
+          gCap.setAttribute('opacity', c);
+          var s = prog(t, CFG.tip);
+          gTip.setAttribute('transform', 'translate(0 166) scale(1 ' + s + ') translate(0 -166)');
+          var u = (t - CFG.pulse[0]) / (CFG.pulse[1] - CFG.pulse[0]);
+          var k = u > 0 && u < 1 ? 1 + CFG.pulseScale * Math.sin(Math.PI * ease(u)) : 1;
+          gAll.setAttribute('transform', 'translate(190 193) scale(' + k + ') translate(-190 -193)');
+        }
+
+        var raf = 0, hidden = false, done;
+        var finished = new Promise(function (resolve) { done = resolve; });
+
+        function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+        function finish() { stop(); draw(CFG.total); mark('splash:finished'); done(); }
+
+        function hide() {
+          if (hidden) return;
+          hidden = true;
+          stop();
+          mark('splash:hide');
+          el.style.transition = 'opacity ' + CFG.fade + 'ms linear';
+          el.classList.add('hide');
+          setTimeout(function () {
+            if (el.parentNode) el.parentNode.removeChild(el);
+            root.classList.remove('splash-on');
+            metas.forEach(function (m, i) { m.setAttribute('content', savedColors[i]); });
+            mark('splash:removed');
+          }, CFG.fade + 30);
+        }
+
+        // Relógio, não contagem de quadros: o tempo vem do rAF, então quadros perdidos não alongam a animação.
+        var t0 = null;
+        function frame(now) {
+          if (t0 === null) { t0 = now; mark('splash:start'); }
+          var t = now - t0;
+          if (t >= CFG.total) { finish(); return; }
+          draw(t);
+          raf = requestAnimationFrame(frame);
+        }
+
+        window.__splash = {
+          finished: finished,
+          hide: hide,
+          // Para teste: congela no instante t (ms) e desenha esse quadro.
+          seek: function (t) { stop(); draw(t); },
+          config: CFG
+        };
+
+        setTimeout(hide, CFG.safety);
+
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          finish(); // só o quadro final; sai assim que o app estiver pronto
+        } else {
+          raf = requestAnimationFrame(frame);
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

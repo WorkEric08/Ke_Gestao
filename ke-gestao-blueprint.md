@@ -157,3 +157,10 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
 - **Telas no mockup:** Início, Estoque e Perfil seguem as medidas do mockup (80 conferências em 412×892, nos dois modos). O Perfil agora salva ao sair do campo (sem botão "Salvar").
 - **Telas fora do mockup** (Clientes, Financeiro, Nova venda, Editar cliente, seletor de cliente, Informações do sistema): ainda usam `slate`/`gray`/`rose`; no `tailwind.config.js` essas escalas apontam para os tons do Material 3 (paleta de transição). Migrar uma tela = trocar essas classes pelos papéis de cor.
 - **Fonte:** Roboto (era Inter).
+
+### 30/10/2026 — Splash do batom e ícone novo
+- **Splash:** 2 s, SVG/CSS inline no `index.html` (aparece antes do bundle), guiada pelo relógio (`performance.now`). Ajustes em `CFG` (tempos, fade, timeout) e nos `fill` do SVG (cores).
+- **Abertura:** `services/startup.ts` dispara banco, fonte e telas em paralelo e libera o splash quando animação e app estiverem prontos (timeout de segurança de 6 s). Em dev, o console mostra o tempo de abertura (meta 1,8 s). Em produção, as marcas `ke:*` e `splash:*` ficam em `performance.getEntriesByType('mark')`.
+- **Build:** o HTML pré-carrega a fonte e os pedaços das telas (`startupPreloadPlugin` em `vite.config.ts`).
+- **Teste:** a chave `localStorage['ke:sem-splash'] = '1'` desliga o splash (senão ele intercepta o toque dos testes de tela).
+- **Ícone:** `design/icone_batom.png` é a origem; `public/` tem icon-192, icon-512, icon-maskable-512 (full-bleed), apple-touch-icon e favicon-32.

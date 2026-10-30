@@ -2,16 +2,18 @@ import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import { HomeAppBar } from './components/AppBar';
+import { routes } from './views/routes';
+import { markRendered } from './services/startup';
 import Dashboard from './views/Dashboard';
 
 // Só o Dashboard (tela inicial) vai no pacote principal; as demais views carregam sob demanda.
 // O service worker pré-cacheia todos os pedaços, então continuam funcionando offline.
-const Customers = lazy(() => import('./views/Customers'));
-const EditCustomer = lazy(() => import('./views/EditCustomer'));
-const Inventory = lazy(() => import('./views/Inventory'));
-const NewSale = lazy(() => import('./views/NewSale'));
-const Debtors = lazy(() => import('./views/Debtors'));
-const Profile = lazy(() => import('./views/Profile'));
+const Customers = lazy(routes.customers);
+const EditCustomer = lazy(routes.editCustomer);
+const Inventory = lazy(routes.inventory);
+const NewSale = lazy(routes.newSale);
+const Debtors = lazy(routes.debtors);
+const Profile = lazy(routes.profile);
 
 const App: React.FC = () => {
   const {
@@ -194,6 +196,11 @@ const App: React.FC = () => {
       onNotifications={() => setCurrentView('debtors')}
     />
   ) : undefined;
+
+  // Avisa o splash que a primeira tela pronta já foi montada (ele espera a pintura).
+  useEffect(() => {
+    if (ready) markRendered();
+  }, [ready]);
 
   // Enquanto o banco abre (poucos ms) fica só o fundo; evita mostrar o app vazio e depois "pular".
   if (!ready) return <div className="min-h-dvh bg-gray-50 dark:bg-slate-950" aria-busy="true" />;

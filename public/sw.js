@@ -10,7 +10,9 @@ const CACHE_NAME = CACHE_PREFIX + BUILD_ID;
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' })))
+      // Arquivos com hash no nome nunca mudam: podem sair do cache HTTP (o prefetch da abertura já os baixou),
+      // senão a primeira visita baixaria cada pedaço duas vezes. O resto (shell, manifest) vem fresco.
+      cache.addAll(PRECACHE.map((url) => new Request(url, { cache: url.startsWith('/assets/') ? 'default' : 'reload' })))
     )
   );
   self.skipWaiting();

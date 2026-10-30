@@ -4,6 +4,7 @@ import { Card, Badge, Input } from '../components/UI';
 import { AlertTriangle, Calendar, Phone, CheckCircle2, User, ArrowRight, Search, X, Filter } from 'lucide-react';
 import { Installment, Customer, Sale, Product } from '../types';
 import { formatCurrency, formatDate, formatPhone } from '../utils/format';
+import { isOverdue } from '../core/finance';
 
 interface DebtorsProps {
   installments: Installment[];
@@ -64,10 +65,7 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
     return list;
   }, [installments, searchTerm, selectedMonth, saleMap, customerMap]);
 
-  const today = useMemo(() => new Date().setHours(0, 0, 0, 0), []);
-  const getOverdueStatus = useCallback((dueDate: number) => (
-    dueDate < today ? 'vencida' : 'pendente'
-  ), [today]);
+  const getOverdueStatus = (dueDate: number) => (isOverdue(dueDate, Date.now()) ? 'vencida' : 'pendente');
 
   const clearFilters = useCallback(() => {
     setSearchTerm('');

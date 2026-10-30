@@ -30,8 +30,12 @@
         var theme;
         try {
           if (localStorage.getItem('theme_manually_set') === 'true') {
-            var saved = JSON.parse(localStorage.getItem('kegestao_v1'));
-            theme = saved && saved.profile && saved.profile.theme;
+            theme = localStorage.getItem('kegestao_theme');
+            if (!theme) {
+              // Antes do banco, o tema escolhido morava dentro do JSON antigo; ele migra na primeira abertura.
+              var saved = JSON.parse(localStorage.getItem('kegestao_v1'));
+              theme = saved && saved.profile && saved.profile.theme;
+            }
           }
         } catch (e) {}
         if (theme !== 'dark' && theme !== 'light') {

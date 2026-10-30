@@ -15,6 +15,10 @@ const Profile = lazy(() => import('./views/Profile'));
 const App: React.FC = () => {
   const {
     data,
+    ready,
+    saveError,
+    dismissSaveError,
+    todayReminders,
     currentView,
     setCurrentView,
     addCustomer,
@@ -97,24 +101,6 @@ const App: React.FC = () => {
     setEditingCustomerId(id);
     setCurrentView('edit-customer');
   }, [setCurrentView]);
-
-  const todayReminders = useMemo(() => {
-    const today = new Date().setHours(0, 0, 0, 0);
-    return data.installments
-      .filter(ins => {
-        const insDate = new Date(ins.dueDate).setHours(0, 0, 0, 0);
-        return insDate === today && !ins.paidAt;
-      })
-      .map(ins => {
-        const sale = data.sales.find(s => s.id === ins.saleId);
-        const customer = data.customers.find(c => c.id === sale?.customerId);
-        return {
-          id: ins.id,
-          customerName: customer?.name || 'Cliente',
-          amount: ins.amount
-        };
-      });
-  }, [data.installments, data.sales, data.customers]);
 
   const renderView = () => {
     switch (currentView) {
@@ -203,12 +189,21 @@ const App: React.FC = () => {
     return currentView;
   }, [currentView]);
 
+  // Enquanto o banco abre (poucos ms) fica só o fundo; evita mostrar o app vazio e depois "pular".
+  if (!ready) return <div className="min-h-dvh bg-gray-50 dark:bg-slate-950" aria-busy="true" />;
+
   return (
     <Layout
       currentView={layoutView}
       setView={setCurrentView}
       title={title}
     >
+      {saveError && (
+        <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-900/20 p-4 text-sm text-rose-700 dark:text-rose-300">
+          <p className="flex-1">Não foi possível salvar os dados neste aparelho. O que você fizer agora pode se perder ao fechar o app. Libere espaço no aparelho e tente de novo.</p>
+          <button onClick={dismissSaveError} className="shrink-0 min-h-11 px-2 font-bold underline">Fechar</button>
+        </div>
+      )}
       <Suspense fallback={<div className="min-h-[60dvh]" aria-busy="true" />}>
         {renderView()}
       </Suspense>

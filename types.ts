@@ -15,7 +15,10 @@ export interface Product {
   price: number;
   stock: number;
   minStock: number;
+  createdAt: number;
 }
+
+export type CustomerStatus = 'em dia' | 'pendente' | 'devedor';
 
 export interface Installment {
   id: string;

@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
@@ -124,6 +125,9 @@ export default defineConfig(() => {
       host: '0.0.0.0',
     },
     plugins: [react(), versionJsonPlugin(version, git, buildTime), precachePlugin()],
+    test: {
+      include: ['core/**/*.test.ts', 'services/**/*.test.ts']
+    },
     define: {
       __APP_VERSION__: JSON.stringify(version),
       __APP_COMMIT__: JSON.stringify(git.commit),

@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from '../utils/format';
 import { Customer, Product, SaleItem, View } from '../types';
 import CustomerSelector from '../components/CustomerSelector';
+import { saleTotal } from '../core/sales';
 
 interface NewSaleProps {
   customers: Customer[];
@@ -35,7 +36,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
   const [installments, setInstallments] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const total = useMemo(() => cartItems.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0), [cartItems]);
+  const total = useMemo(() => saleTotal(cartItems), [cartItems]);
 
   const productMap = useMemo(() => {
     const m = new Map<string, Product>();
@@ -90,7 +91,6 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
     createSale({
       customerId: selectedCustomerId,
       items: cartItems,
-      total,
       paymentMethod,
       installments
     });
@@ -98,7 +98,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
     setTimeout(() => {
       setView('dashboard');
     }, 2000);
-  }, [createSale, selectedCustomerId, cartItems, total, paymentMethod, installments, setView]);
+  }, [createSale, selectedCustomerId, cartItems, paymentMethod, installments, setView]);
 
   if (showSuccess) {
     return (

@@ -1,334 +1,219 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { AppData, Customer, Product, Sale, Installment, UserProfile, View } from '../types';
+import { AppData, Customer, CustomerStatus, Product, Sale, UserProfile, View } from '../types';
+import { emptyData } from '../core/data';
+import { buildInstallments, customerStatuses } from '../core/finance';
+import { cascadeOfCustomer, deductStock, saleTotal } from '../core/sales';
+import { dashboardStats as computeStats, todayReminders as computeReminders } from '../core/stats';
+import { startOfDay } from '../core/time';
+import { boot } from '../services/boot';
+import type { Repository } from '../services/repository';
+import { MANUAL_KEY, Theme, resolveTheme, saveManualTheme } from '../services/theme';
 
-const STORAGE_KEY = 'kegestao_v1';
-const MANUAL_THEME_KEY = 'theme_manually_set';
-const PERSIST_DEBOUNCE_MS = 400;
+const DAY_CHECK_MS = 60_000;
 
-const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+const systemIsDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-const INITIAL_DATA: AppData = {
-  customers: [],
-  products: [],
-  sales: [],
-  installments: [],
-  profile: {
-    name: 'Consultora',
-    businessName: 'Ke Gestão',
-    currency: 'BRL',
-    theme: undefined
+const initialTheme = (): Theme => {
+  try {
+    return resolveTheme(localStorage, systemIsDark());
+  } catch {
+    return systemIsDark() ? 'dark' : 'light';
   }
 };
 
-type CustomerStatus = 'em dia' | 'pendente' | 'devedor';
-
 export const useStore = () => {
   const [data, setData] = useState<AppData>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const systemTheme = getSystemTheme();
-      const hasManualOverride = localStorage.getItem(MANUAL_THEME_KEY) === 'true';
-
-      if (!stored) {
-        return {
-          ...INITIAL_DATA,
-          profile: { ...INITIAL_DATA.profile, theme: systemTheme }
-        };
-      }
-
-      const parsed = JSON.parse(stored);
-      const effectiveTheme = hasManualOverride
-        ? (parsed.profile?.theme || systemTheme)
-        : systemTheme;
-
-      return {
-        ...INITIAL_DATA,
-        ...parsed,
-        profile: {
-          ...INITIAL_DATA.profile,
-          ...(parsed.profile || {}),
-          theme: effectiveTheme
-        }
-      };
-    } catch (e) {
-      console.error("Failed to load data from localStorage", e);
-      return {
-        ...INITIAL_DATA,
-        profile: { ...INITIAL_DATA.profile, theme: getSystemTheme() }
-      };
-    }
+    const initial = emptyData();
+    return { ...initial, profile: { ...initial.profile, theme: initialTheme() } };
   });
-
+  const [ready, setReady] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  // Início do dia de hoje: as contas que dependem da data (vencida, vence hoje) recalculam quando o dia vira.
+  const [today, setToday] = useState(() => startOfDay(Date.now()));
 
-  // Aplica o tema visual no DOM sincronamente
-  useEffect(() => {
-    const root = document.documentElement;
-    if (data.profile.theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
+  // O estado mais recente, lido pelas ações: duas ações no mesmo tique enxergam uma à outra,
+  // e nenhuma escrita acontece dentro de um updater do React (que o modo estrito roda duas vezes).
+  const dataRef = useRef(data);
+  const repoRef = useRef<Repository | null>(null);
+
+  const commit = useCallback((next: AppData) => {
+    dataRef.current = next;
+    setData(next);
+  }, []);
+
+  const persist = useCallback((write: (repository: Repository) => Promise<void>) => {
+    const repository = repoRef.current;
+    if (!repository) {
+      setSaveError(true);
+      return;
     }
-  }, [data.profile.theme]);
+    write(repository).catch(e => {
+      console.error('Ke Gestão: falha ao salvar', e);
+      setSaveError(true);
+    });
+  }, []);
 
-  // Persistência em localStorage com debounce — evita serializar a cada keystroke
-  const persistTimerRef = useRef<number | null>(null);
   useEffect(() => {
-    if (persistTimerRef.current !== null) {
-      window.clearTimeout(persistTimerRef.current);
-    }
-    persistTimerRef.current = window.setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {
-        console.error('Failed to persist data', e);
-      }
-    }, PERSIST_DEBOUNCE_MS);
+    let alive = true;
+    boot().then(({ repository, data: loaded, failed }) => {
+      if (!alive) return;
+      repoRef.current = repository;
+      commit({ ...loaded, profile: { ...loaded.profile, theme: initialTheme() } });
+      if (failed) setSaveError(true);
+      setReady(true);
+    });
+    return () => { alive = false; };
+  }, [commit]);
 
-    return () => {
-      if (persistTimerRef.current !== null) {
-        window.clearTimeout(persistTimerRef.current);
-      }
-    };
-  }, [data]);
-
-  // Garante que ao sair da página a última mudança seja salva
+  // Só depois de abrir: até lá vale a classe que o index.html pôs antes da primeira pintura.
   useEffect(() => {
-    const flush = () => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {
-        /* noop */
-      }
-    };
-    window.addEventListener('pagehide', flush);
-    return () => window.removeEventListener('pagehide', flush);
-  }, [data]);
+    if (!ready) return;
+    document.documentElement.classList.toggle('dark', data.profile.theme === 'dark');
+  }, [ready, data.profile.theme]);
 
-  // Escuta mudanças de preferência do sistema
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      const hasManualOverride = localStorage.getItem(MANUAL_THEME_KEY) === 'true';
-      if (!hasManualOverride) {
-        const newTheme = e.matches ? 'dark' : 'light';
-        setData(prev => ({
-          ...prev,
-          profile: { ...prev.profile, theme: newTheme }
-        }));
-      }
+      if (localStorage.getItem(MANUAL_KEY) === 'true') return;
+      const current = dataRef.current;
+      commit({ ...current, profile: { ...current.profile, theme: e.matches ? 'dark' : 'light' } });
     };
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [commit]);
+
+  useEffect(() => {
+    const sync = () => setToday(prev => {
+      const next = startOfDay(Date.now());
+      return next === prev ? prev : next;
+    });
+    const timer = window.setInterval(sync, DAY_CHECK_MS);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', sync);
+    };
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setData(prev => {
-      const newTheme = prev.profile.theme === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(MANUAL_THEME_KEY, 'true');
-      return {
-        ...prev,
-        profile: { ...prev.profile, theme: newTheme }
-      };
-    });
-  }, []);
+    const current = dataRef.current;
+    const theme: Theme = current.profile.theme === 'dark' ? 'light' : 'dark';
+    try {
+      saveManualTheme(localStorage, theme);
+    } catch { /* sem localStorage: o tema vale só nesta sessão */ }
+    const profile = { ...current.profile, theme };
+    commit({ ...current, profile });
+    persist(r => r.putProfile(profile));
+  }, [commit, persist]);
 
-  const addCustomer = useCallback((customer: Omit<Customer, 'id' | 'createdAt'>) => {
-    const newCustomer: Customer = {
-      ...customer,
-      id: crypto.randomUUID(),
-      createdAt: Date.now()
-    };
-    setData(prev => ({ ...prev, customers: [...prev.customers, newCustomer] }));
-    return newCustomer;
-  }, []);
+  const addCustomer = useCallback((input: Omit<Customer, 'id' | 'createdAt'>) => {
+    const customer: Customer = { ...input, id: crypto.randomUUID(), createdAt: Date.now() };
+    const current = dataRef.current;
+    commit({ ...current, customers: [...current.customers, customer] });
+    persist(r => r.putCustomer(customer));
+    return customer;
+  }, [commit, persist]);
 
   const updateCustomer = useCallback((id: string, updates: Partial<Customer>) => {
-    setData(prev => ({
-      ...prev,
-      customers: prev.customers.map(c => c.id === id ? { ...c, ...updates } : c)
-    }));
-  }, []);
+    const current = dataRef.current;
+    const existing = current.customers.find(c => c.id === id);
+    if (!existing) return;
+    const customer: Customer = { ...existing, ...updates, id };
+    commit({ ...current, customers: current.customers.map(c => (c.id === id ? customer : c)) });
+    persist(r => r.putCustomer(customer));
+  }, [commit, persist]);
 
   const deleteCustomer = useCallback((id: string) => {
-    setData(prev => {
-      const saleIdsToRemove = new Set(prev.sales.filter(s => s.customerId === id).map(s => s.id));
-      return {
-        ...prev,
-        customers: prev.customers.filter(c => c.id !== id),
-        installments: prev.installments.filter(ins => !saleIdsToRemove.has(ins.saleId)),
-        sales: prev.sales.filter(s => s.customerId !== id)
-      };
+    const current = dataRef.current;
+    const { saleIds, installmentIds } = cascadeOfCustomer(current.sales, current.installments, id);
+    const goneSales = new Set(saleIds);
+    const goneInstallments = new Set(installmentIds);
+    commit({
+      ...current,
+      customers: current.customers.filter(c => c.id !== id),
+      sales: current.sales.filter(s => !goneSales.has(s.id)),
+      installments: current.installments.filter(i => !goneInstallments.has(i.id))
     });
-  }, []);
+    persist(r => r.removeCustomer(id, saleIds, installmentIds));
+  }, [commit, persist]);
 
-  const addProduct = useCallback((product: Omit<Product, 'id'>) => {
-    const newProduct: Product = { ...product, id: crypto.randomUUID() };
-    setData(prev => ({ ...prev, products: [...prev.products, newProduct] }));
-  }, []);
+  const addProduct = useCallback((input: Omit<Product, 'id' | 'createdAt'>) => {
+    const product: Product = { ...input, id: crypto.randomUUID(), createdAt: Date.now() };
+    const current = dataRef.current;
+    commit({ ...current, products: [...current.products, product] });
+    persist(r => r.putProduct(product));
+  }, [commit, persist]);
 
   const updateProduct = useCallback((id: string, updates: Partial<Product>) => {
-    setData(prev => ({
-      ...prev,
-      products: prev.products.map(p => p.id === id ? { ...p, ...updates } : p)
-    }));
-  }, []);
+    const current = dataRef.current;
+    const existing = current.products.find(p => p.id === id);
+    if (!existing) return;
+    const product: Product = { ...existing, ...updates, id, createdAt: existing.createdAt };
+    commit({ ...current, products: current.products.map(p => (p.id === id ? product : p)) });
+    persist(r => r.putProduct(product));
+  }, [commit, persist]);
 
   const deleteProduct = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      products: prev.products.filter(p => p.id !== id)
-    }));
-  }, []);
+    const current = dataRef.current;
+    commit({ ...current, products: current.products.filter(p => p.id !== id) });
+    persist(r => r.deleteProduct(id));
+  }, [commit, persist]);
 
-  const updateProductStock = useCallback((productId: string, quantityChange: number) => {
-    setData(prev => ({
-      ...prev,
-      products: prev.products.map(p =>
-        p.id === productId ? { ...p, stock: Math.max(0, p.stock + quantityChange) } : p
-      )
-    }));
-  }, []);
-
-  const createSale = useCallback((saleData: Omit<Sale, 'id' | 'createdAt'>) => {
-    const saleId = crypto.randomUUID();
-    const now = Date.now();
-    const newSale: Sale = { ...saleData, id: saleId, createdAt: now };
-    const newInstallments: Installment[] = [];
-    const installmentAmount = saleData.total / saleData.installments;
-    for (let i = 1; i <= saleData.installments; i++) {
-      const dueDate = new Date(now);
-      dueDate.setMonth(dueDate.getMonth() + i);
-      newInstallments.push({
-        id: crypto.randomUUID(),
-        saleId,
-        number: i,
-        amount: installmentAmount,
-        dueDate: dueDate.getTime()
-      });
-    }
-    setData(prev => {
-      const soldMap = new Map<string, number>();
-      saleData.items.forEach(it => soldMap.set(it.productId, it.quantity));
-      const updatedProducts = prev.products.map(p => {
-        const qty = soldMap.get(p.id);
-        if (qty) return { ...p, stock: Math.max(0, p.stock - qty) };
-        return p;
-      });
-      return {
-        ...prev,
-        sales: [...prev.sales, newSale],
-        installments: [...prev.installments, ...newInstallments],
-        products: updatedProducts
-      };
+  // O total sai dos itens (uma regra só); o valor que a tela mostra usa a mesma função.
+  const createSale = useCallback((input: Omit<Sale, 'id' | 'createdAt' | 'total'>) => {
+    const current = dataRef.current;
+    const sale: Sale = { ...input, id: crypto.randomUUID(), createdAt: Date.now(), total: saleTotal(input.items) };
+    const installments = buildInstallments(sale, () => crypto.randomUUID());
+    const changed = new Map(deductStock(current.products, sale.items).map(p => [p.id, p]));
+    commit({
+      ...current,
+      sales: [...current.sales, sale],
+      installments: [...current.installments, ...installments],
+      products: current.products.map(p => changed.get(p.id) ?? p)
     });
-  }, []);
+    persist(r => r.recordSale(sale, installments, [...changed.values()]));
+  }, [commit, persist]);
 
-  const markInstallmentAsPaid = useCallback((installmentId: string) => {
-    setData(prev => ({
-      ...prev,
-      installments: prev.installments.map(ins =>
-        ins.id === installmentId ? { ...ins, paidAt: Date.now() } : ins
-      )
-    }));
-  }, []);
+  const markInstallmentAsPaid = useCallback((id: string) => {
+    const current = dataRef.current;
+    const existing = current.installments.find(i => i.id === id);
+    if (!existing || existing.paidAt) return;
+    const installment = { ...existing, paidAt: Date.now() };
+    commit({ ...current, installments: current.installments.map(i => (i.id === id ? installment : i)) });
+    persist(r => r.putInstallment(installment));
+  }, [commit, persist]);
 
   const updateProfile = useCallback((profile: UserProfile) => {
-    setData(prev => ({ ...prev, profile }));
-  }, []);
+    commit({ ...dataRef.current, profile });
+    persist(r => r.putProfile(profile));
+  }, [commit, persist]);
 
-  // Map pré-calculado: saleId -> customerId. Evita varrer sales para cada chamada.
-  const saleCustomerMap = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const s of data.sales) m.set(s.id, s.customerId);
-    return m;
-  }, [data.sales]);
+  const customerStatusMap = useMemo(
+    () => customerStatuses(data.installments, data.sales, today),
+    [data.installments, data.sales, today]
+  );
 
-  // Status por cliente pré-calculado uma única vez quando installments/sales mudam.
-  const customerStatusMap = useMemo(() => {
-    const now = Date.now();
-    const map = new Map<string, CustomerStatus>();
-    for (const ins of data.installments) {
-      if (ins.paidAt) continue;
-      const customerId = saleCustomerMap.get(ins.saleId);
-      if (!customerId) continue;
-      const current = map.get(customerId);
-      if (ins.dueDate < now) {
-        map.set(customerId, 'devedor');
-      } else if (current !== 'devedor') {
-        map.set(customerId, 'pendente');
-      }
-    }
-    return map;
-  }, [data.installments, saleCustomerMap]);
+  const getCustomerStatus = useCallback(
+    (customerId: string): CustomerStatus => customerStatusMap.get(customerId) ?? 'em dia',
+    [customerStatusMap]
+  );
 
-  const getCustomerStatus = useCallback((customerId: string): CustomerStatus => {
-    return customerStatusMap.get(customerId) || 'em dia';
-  }, [customerStatusMap]);
+  const dashboardStats = useMemo(
+    () => computeStats(data, today),
+    [data.sales, data.installments, data.products, data.customers, today]
+  );
 
-  const dashboardStats = useMemo(() => {
-    const dateObj = new Date();
-    const today = new Date().setHours(0, 0, 0, 0);
-    const thisMonthStart = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).getTime();
-
-    let salesToday = 0;
-    let salesMonth = 0;
-    for (const s of data.sales) {
-      if (s.createdAt >= today) salesToday += s.total;
-      if (s.createdAt >= thisMonthStart) salesMonth += s.total;
-    }
-
-    let totalReceivable = 0;
-    const monthlyMap: Record<string, number> = {};
-    let furthestInstallment: number | null = null;
-
-    for (const ins of data.installments) {
-      if (ins.paidAt) continue;
-      totalReceivable += ins.amount;
-      const d = new Date(ins.dueDate);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      monthlyMap[key] = (monthlyMap[key] || 0) + ins.amount;
-      if (furthestInstallment === null || ins.dueDate > furthestInstallment) {
-        furthestInstallment = ins.dueDate;
-      }
-    }
-
-    const sortedMonthKeys = Object.keys(monthlyMap).sort();
-    const currentMonthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-
-    const receivableThisMonth = monthlyMap[currentMonthKey] || 0;
-    let receivableFuture = 0;
-    for (const key of sortedMonthKeys) {
-      if (key > currentMonthKey) receivableFuture += monthlyMap[key];
-    }
-
-    const receivablesByMonth = sortedMonthKeys.map(key => ({
-      key,
-      label: new Date(key + '-02').toLocaleString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', ''),
-      total: monthlyMap[key],
-      isCurrent: key === currentMonthKey
-    }));
-
-    let lowStockItems = 0;
-    for (const p of data.products) {
-      if (p.stock <= p.minStock) lowStockItems += 1;
-    }
-
-    return {
-      salesToday,
-      salesMonth,
-      totalReceivable,
-      receivableThisMonth,
-      receivableFuture,
-      receivablesByMonth,
-      furthestInstallment,
-      activeCustomers: data.customers.length,
-      lowStockItems
-    };
-  }, [data.sales, data.installments, data.products, data.customers]);
+  const todayReminders = useMemo(
+    () => computeReminders(data, today),
+    [data.installments, data.sales, data.customers, today]
+  );
 
   return {
     data,
+    ready,
+    saveError,
+    dismissSaveError: useCallback(() => setSaveError(false), []),
     currentView,
     setCurrentView,
     addCustomer,
@@ -342,7 +227,7 @@ export const useStore = () => {
     updateProfile,
     getCustomerStatus,
     dashboardStats,
-    updateProductStock,
+    todayReminders,
     toggleTheme
   };
 };

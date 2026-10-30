@@ -92,7 +92,8 @@ Este documento é a especificação técnica, funcional e visual exaustiva do pr
 - **Tailwind CSS 3:** Estilização via classes utilitárias, compilada no build (`tailwind.config.js` + `index.css`).
 - **Lucide React:** Iconografia consistente e leve.
 - **Inter (variável, subconjunto latino):** fonte auto-hospedada via `@fontsource-variable/inter`.
-- **LocalStorage API:** Banco de dados local persistente (offline-first).
+- **IndexedDB via Dexie 4:** banco local no aparelho (offline-first). `localStorage` só guarda o espelho do tema e o JSON do formato antigo, até migrar.
+- **Vitest + fake-indexeddb:** testes do núcleo (`core/`) e dos serviços (`services/`); `npm test`.
 
 ---
 
@@ -114,7 +115,7 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
 
 1.  **Prepare o build:** Vite + React 19 + Tailwind 3 (PostCSS) + `@fontsource-variable/inter`. O `index.html` não carrega nada de CDN; o CSS entra por `index.css`.
 2.  **Defina os Tipos:** Crie o `types.ts` com as interfaces acima para garantir consistência em toda a aplicação.
-3.  **Implemente a Store:** Crie o `useStore.ts`. Ele deve carregar o estado inicial do LocalStorage e expor métodos `add`, `update` e `delete` para todas as entidades, além de disparar o `localStorage.setItem` em cada mudança.
+3.  **Implemente o núcleo e a Store:** as regras (parcelas no centavo, vencida, status do cliente, estoque, estatísticas) ficam em `core/`, TypeScript puro e testado. O `useStore.ts` só mantém o estado em memória, chama o núcleo e grava cada mudança pelo repositório (`services/repository.ts`, Dexie) em uma transação.
 4.  **Crie a Biblioteca UI:** Implemente o `components/UI.tsx` com botões, cards e inputs estilizados com Tailwind.
 5.  **Monte o Layout:** Desenvolva o `components/Layout.tsx` com o Header (título dinâmico) e a Bottom Navigation.
 6.  **Desenvolva as Views na Ordem:**
@@ -138,3 +139,13 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
 - **Views sob demanda:** só o Dashboard está no pacote principal; as demais usam `React.lazy`.
 - **Ícones:** `icon-192.png` e `icon-512.png` (o original de 352 kB ficou em `design/logo-original.png`, fora do que é publicado).
 - **Medido (Slow-4G, CPU 4x, 390×844):** primeira pintura ~2,3 s → ~1,07 s; transferido 258 kB → 128 kB; origens externas 3 → 0.
+
+### 30/10/2026 — Dados em IndexedDB e regras no núcleo (substitui "LocalStorage como banco")
+- **Motivo:** o app regravava o JSON inteiro no `localStorage` (síncrono, ~5 MB) a cada mudança, e as contas de dinheiro e de data viviam dentro do store, sem teste.
+- **Agora:** `core/` (puro) + `services/` (Dexie) + `store/`. O JSON antigo migra sozinho na primeira abertura e só é apagado depois de reler o banco e conferir que tudo entrou. O banco sempre vence.
+- **Regras corrigidas ao extrair:**
+  - Parcelas somam exatamente o total (a sobra de centavos vai às primeiras parcelas).
+  - Vencimentos mensais não pulam o mês (31/01 + 1 mês = 28/02).
+  - "Vencida" é uma regra só (antes de hoje), usada por status do cliente, Financeiro e lembretes, e recalcula quando o dia vira.
+  - O total da venda sai dos itens, no centavo.
+- **Custo assumido:** Dexie soma ≈ +35 kB gzip ao JS principal.

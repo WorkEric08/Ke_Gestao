@@ -69,7 +69,10 @@ export const useStore = () => {
   // Só depois de abrir: até lá vale a classe que o index.html pôs antes da primeira pintura.
   useEffect(() => {
     if (!ready) return;
-    document.documentElement.classList.toggle('dark', data.profile.theme === 'dark');
+    const dark = data.profile.theme === 'dark';
+    document.documentElement.classList.toggle('dark', dark);
+    // A barra de status do Android/PWA segue o tema do app (e não só o do sistema) quando ele é trocado à mão.
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', dark ? '#000000' : '#FFF8F8'));
   }, [ready, data.profile.theme]);
 
   useEffect(() => {

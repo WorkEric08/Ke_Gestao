@@ -72,11 +72,12 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 px-4 h-14 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div className="flex flex-col">
           <h4 className="text-base font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">Selecionar Cliente</h4>
-          <span className="text-[9px] text-rose-500 font-bold uppercase tracking-widest mt-0.5">Passo 1 de 3</span>
+          <span className="text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-0.5">Passo 1 de 3</span>
         </div>
         <button 
-          onClick={onClose} 
-          className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-all"
+          onClick={onClose}
+          aria-label="Fechar"
+          className="w-11 h-11 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-all"
         >
           <X size={18} strokeWidth={2.5} />
         </button>
@@ -90,6 +91,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
             <input
               ref={searchInputRef}
               placeholder="Pesquisar cliente..."
+              aria-label="Pesquisar cliente"
               className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl pl-10 pr-10 py-3 focus:outline-none focus:ring-4 focus:ring-rose-500/5 focus:border-rose-200 dark:focus:border-rose-900/50 text-sm transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,7 +100,8 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
             {searchTerm && (
               <button 
                 onClick={() => {setSearchTerm(''); searchInputRef.current?.focus();}}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 p-1.5"
+                aria-label="Limpar busca"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 w-11 h-11 flex items-center justify-center"
               >
                 <X size={14} />
               </button>
@@ -106,6 +109,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
           </div>
           <button 
             onClick={onAddCustomer}
+            aria-label="Cadastrar novo cliente"
             className="bg-rose-500 text-white p-3.5 rounded-2xl shadow-lg shadow-rose-200 dark:shadow-none active:scale-95 transition-all"
           >
             <UserPlus size={18} />
@@ -118,7 +122,8 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as FilterStatus)}
-                className={`px-4 py-2 rounded-full text-[10px] font-black transition-all whitespace-nowrap border capitalize tracking-tight ${
+                aria-pressed={filterStatus === status}
+                className={`px-4 min-h-10 rounded-full text-[11px] font-black transition-all whitespace-nowrap border capitalize tracking-tight ${
                   filterStatus === status 
                     ? 'bg-rose-500 border-rose-500 text-white shadow-sm' 
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600'

@@ -31,7 +31,7 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 overflow-x-hidden">
+    <div className="flex min-h-dvh bg-gray-50 dark:bg-slate-950 overflow-x-clip">
 
       {/* ── Sidebar (desktop only) ── */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-60 bg-white dark:bg-slate-900 border-r border-gray-100 dark:border-slate-800 z-40 shadow-sm">
@@ -51,6 +51,7 @@ const Layout: React.FC<LayoutProps> = ({
             <button
               key={item.id}
               onClick={() => setView(item.id)}
+              aria-current={currentView === item.id ? 'page' : undefined}
               className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-semibold transition-all group ${
                 currentView === item.id
                   ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 shadow-sm'
@@ -68,10 +69,10 @@ const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       {/* ── Main area (pushed right on desktop) ── */}
-      <div className="flex flex-col flex-1 lg:ml-60 min-h-screen overflow-x-hidden">
+      <div className="flex flex-col flex-1 min-w-0 lg:ml-60 min-h-dvh overflow-x-clip">
 
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm px-4 lg:px-6 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm px-4 lg:px-6 pt-[env(safe-area-inset-top)] h-[calc(4rem+env(safe-area-inset-top))] flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-800 dark:text-slate-100 tracking-tight">{title}</h1>
           <div className="flex items-center gap-2">
             {actions}
@@ -79,21 +80,25 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main content */}
-        <main className="flex-1 p-4 lg:p-8 w-full max-w-md lg:max-w-none mx-auto animate-fade-in pb-20 lg:pb-10 overflow-x-hidden">
+        <main className="flex-1 p-4 lg:p-8 w-full max-w-md md:max-w-2xl lg:max-w-none mx-auto animate-fade-in pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-10 overflow-x-clip">
           {children}
         </main>
       </div>
 
       {/* ── Bottom Navigation (mobile only) ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 flex justify-around items-center h-16 safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-50">
+      <nav aria-label="Navegação principal" className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 flex justify-around items-stretch h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-50">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => setView(item.id)}
-            className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+            aria-current={currentView === item.id ? 'page' : undefined}
+            className={`relative flex flex-col items-center justify-center flex-1 transition-colors ${
               currentView === item.id ? 'text-rose-500' : 'text-gray-400 dark:text-slate-500'
             }`}
           >
+            {currentView === item.id && (
+              <span className="absolute top-0 h-0.5 w-8 rounded-b-full bg-rose-500" aria-hidden="true" />
+            )}
             {item.icon}
             <span className="text-[10px] font-medium mt-1 uppercase tracking-wider">{item.label}</span>
           </button>

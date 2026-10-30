@@ -48,7 +48,7 @@ Este documento é a especificação técnica, funcional e visual exaustiva do pr
 ---
 
 ## 5. ARQUITETURA DO PROJETO
-- **Arquitetura:** SPA (Single Page Application) estática alimentada por ESM (ES6 Modules).
+- **Arquitetura:** SPA (Single Page Application) estática, empacotada pelo Vite (ver a decisão de 30/10/2026 no fim deste documento).
 - **Estrutura de Pastas (Flat/Root):**
     - `/`: Raiz contendo todos os arquivos principais para facilitar o deploy estático.
     - `/components`: Componentes atômicos e Layout.
@@ -89,9 +89,9 @@ Este documento é a especificação técnica, funcional e visual exaustiva do pr
 
 ## 6. STACK TECNOLÓGICA
 - **React 19:** UI reativa de última geração.
-- **Tailwind CSS:** Estilização via classes utilitárias (CDN).
+- **Tailwind CSS 3:** Estilização via classes utilitárias, compilada no build (`tailwind.config.js` + `index.css`).
 - **Lucide React:** Iconografia consistente e leve.
-- **Esm.sh:** CDN para entrega de pacotes via ESM puro.
+- **Inter (variável, subconjunto latino):** fonte auto-hospedada via `@fontsource-variable/inter`.
 - **LocalStorage API:** Banco de dados local persistente (offline-first).
 
 ---
@@ -112,7 +112,7 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
 
 ## 8. COMO RECRIAR ESTE PROJETO DO ZERO
 
-1.  **Prepare o HTML:** Configure o `index.html` com o `importmap` para React 19 e Lucide. Adicione o script do Tailwind.
+1.  **Prepare o build:** Vite + React 19 + Tailwind 3 (PostCSS) + `@fontsource-variable/inter`. O `index.html` não carrega nada de CDN; o CSS entra por `index.css`.
 2.  **Defina os Tipos:** Crie o `types.ts` com as interfaces acima para garantir consistência em toda a aplicação.
 3.  **Implemente a Store:** Crie o `useStore.ts`. Ele deve carregar o estado inicial do LocalStorage e expor métodos `add`, `update` e `delete` para todas as entidades, além de disparar o `localStorage.setItem` em cada mudança.
 4.  **Crie a Biblioteca UI:** Implemente o `components/UI.tsx` com botões, cards e inputs estilizados com Tailwind.
@@ -122,8 +122,19 @@ O sistema utiliza um único objeto `AppData` no LocalStorage:
     - Crie `Customers` e `Inventory` para ter dados para testar.
     - Implemente o complexo `NewSale` (Stepper de 3 passos).
     - Finalize com `Debtors` e `Profile`.
-7.  **PWA:** Adicione o `manifest.json` e o `sw.js` com estratégia *Stale-While-Revalidate*.
+7.  **PWA:** Adicione o `manifest.json` e o `sw.js` (pré-cache do build, cache-first; a lista é injetada por `precachePlugin` em `vite.config.ts`).
 8.  **Finalização:** Adicione a `SplashScreen.tsx` no `App.tsx` com um timer de 2.5s.
 
 ---
 **Nota de Sucesso:** A estética deve ser mantida com o uso intensivo de `rose-500` e fundos `slate-950` no modo escuro para preservar a identidade visual luxuosa.
+
+---
+
+## DECISÕES REGISTRADAS
+
+### 30/10/2026 — Carregamento e offline de verdade (substitui "Tailwind/React por CDN" e "SW Stale-While-Revalidate")
+- **Motivo:** com Tailwind (CDN), Google Fonts e importmap (esm.sh), o app dependia de 3 origens externas para a primeira pintura e, sem rede e sem o cache HTTP do navegador, abria **sem nenhum estilo**.
+- **Agora:** Tailwind compilado no build, Inter auto-hospedada, nenhum recurso de terceiros. O service worker pré-cacheia tudo que o build emite (inclusive as views carregadas sob demanda) e responde cache-first.
+- **Views sob demanda:** só o Dashboard está no pacote principal; as demais usam `React.lazy`.
+- **Ícones:** `icon-192.png` e `icon-512.png` (o original de 352 kB ficou em `design/logo-original.png`, fora do que é publicado).
+- **Medido (Slow-4G, CPU 4x, 390×844):** primeira pintura ~2,3 s → ~1,07 s; transferido 258 kB → 128 kB; origens externas 3 → 0.

@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import Dashboard from './views/Dashboard';
-import Customers from './views/Customers';
-import EditCustomer from './views/EditCustomer';
-import Inventory from './views/Inventory';
-import NewSale from './views/NewSale';
-import Debtors from './views/Debtors';
-import Profile from './views/Profile';
+
+// Só o Dashboard (tela inicial) vai no pacote principal; as demais views carregam sob demanda.
+// O service worker pré-cacheia todos os pedaços, então continuam funcionando offline.
+const Customers = lazy(() => import('./views/Customers'));
+const EditCustomer = lazy(() => import('./views/EditCustomer'));
+const Inventory = lazy(() => import('./views/Inventory'));
+const NewSale = lazy(() => import('./views/NewSale'));
+const Debtors = lazy(() => import('./views/Debtors'));
+const Profile = lazy(() => import('./views/Profile'));
 
 const App: React.FC = () => {
   const {
@@ -206,7 +209,9 @@ const App: React.FC = () => {
       setView={setCurrentView}
       title={title}
     >
-      {renderView()}
+      <Suspense fallback={<div className="min-h-[60dvh]" aria-busy="true" />}>
+        {renderView()}
+      </Suspense>
     </Layout>
   );
 };

@@ -1,29 +1,28 @@
-const CACHE_NAME = 'kegestao-v1.8';
-const OFFLINE_URL = '/';
+// Os dois valores abaixo são preenchidos no build (precachePlugin em vite.config.ts).
+const BUILD_ID = 'dev';
+const PRECACHE = [];
 
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/logo.png'
-];
+const CACHE_PREFIX = 'kegestao-';
+const CACHE_NAME = CACHE_PREFIX + BUILD_ID;
 
-// Instalação: cacheia o shell mínimo. Demais assets caem no runtime via fetch handler.
+// Instalação: pré-cacheia o app inteiro (shell, JS/CSS com hash, fonte, ícones).
+// Depois da primeira visita nada mais depende da rede.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' })))
+    )
   );
   self.skipWaiting();
 });
 
-// Ativação: remove caches obsoletos
+// Ativação: remove os caches de versões anteriores
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => Promise.all(
-      cacheNames.filter(n => n !== CACHE_NAME).map(n => caches.delete(n))
-    ))
+    caches.keys().then((names) => Promise.all(
+      names.filter((n) => n.startsWith(CACHE_PREFIX) && n !== CACHE_NAME).map((n) => caches.delete(n))
+    )).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Permite à página acionar a ativação imediata do novo SW
@@ -33,44 +32,32 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Fetch: Estratégia Inteligente
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   // /version.json sempre sai pela rede — é o sinal usado para detectar update disponível.
   if (url.pathname === '/version.json') {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
-    );
+    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => Response.error()));
     return;
   }
 
-  // Para navegações (quando o usuário recarrega ou abre o app)
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(OFFLINE_URL);
-      })
-    );
-    return;
-  }
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
 
-  // Para outros recursos: Stale-While-Revalidate
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => null);
+    // Navegação: o shell pré-cacheado abre na hora (e offline). Versão nova entra pelo update do SW.
+    if (request.mode === 'navigate') {
+      return (await cache.match('/')) || fetch(request);
+    }
 
-      return cachedResponse || fetchPromise;
-    })
-  );
+    // Demais arquivos: cache primeiro (os de /assets têm hash no nome, nunca mudam).
+    // ignoreVary: o import() de módulo manda `Origin` e o servidor responde `Vary: Origin`,
+    // o que faria o match falhar mesmo com o arquivo no cache.
+    const hit = await cache.match(request, { ignoreVary: true });
+    if (hit) return hit;
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  })());
 });

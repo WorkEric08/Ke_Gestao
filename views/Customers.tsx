@@ -16,6 +16,23 @@ interface CustomersProps {
 
 type FilterStatus = 'todos' | 'em dia' | 'pendente' | 'devedor';
 
+const FilterChip = memo<{ status: FilterStatus; label: string; active: boolean; onSelect: (status: FilterStatus) => void }>(
+  ({ status, label, active, onSelect }) => (
+    <button
+      type="button"
+      onClick={() => onSelect(status)}
+      aria-pressed={active}
+      className={`px-4 min-h-10 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+        active
+          ? 'bg-rose-500 border-rose-500 text-white shadow-sm'
+          : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
+      }`}
+    >
+      {label}
+    </button>
+  )
+);
+
 const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCustomer, getStatus, onEdit, initialIsAdding = false }) => {
   const [isAdding, setIsAdding] = useState(initialIsAdding);
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,19 +137,6 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
     }
   };
 
-  const FilterChip = ({ status, label }: { status: FilterStatus, label: string }) => (
-    <button
-      onClick={() => setFilterStatus(status)}
-      className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
-        filterStatus === status 
-          ? 'bg-rose-500 border-rose-500 text-white shadow-sm' 
-          : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
   const toggleExpand = useCallback((id: string) => {
     setExpandedCustomerId(prev => prev === id ? null : id);
   }, []);
@@ -150,6 +154,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" size={18} />
           <input
             placeholder="Buscar por letra ou nome..."
+            aria-label="Buscar cliente"
             className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-slate-100 rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -157,6 +162,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
         </div>
         <button 
           onClick={() => setIsAdding(true)}
+          aria-label="Novo cliente"
           className="bg-rose-500 text-white p-3 rounded-2xl shadow-sm active:scale-95 transition-all"
         >
           <UserPlus size={20} />
@@ -165,10 +171,10 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-mask">
         <div className="flex gap-2">
-          <FilterChip status="todos" label="Todos" />
-          <FilterChip status="em dia" label="Em Dia" />
-          <FilterChip status="pendente" label="Pendente" />
-          <FilterChip status="devedor" label="Devedor" />
+          <FilterChip status="todos" label="Todos" active={filterStatus === 'todos'} onSelect={setFilterStatus} />
+          <FilterChip status="em dia" label="Em Dia" active={filterStatus === 'em dia'} onSelect={setFilterStatus} />
+          <FilterChip status="pendente" label="Pendente" active={filterStatus === 'pendente'} onSelect={setFilterStatus} />
+          <FilterChip status="devedor" label="Devedor" active={filterStatus === 'devedor'} onSelect={setFilterStatus} />
         </div>
       </div>
 
@@ -176,7 +182,8 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
         <Card className="flex flex-col gap-4 relative border-2 border-rose-100 dark:border-rose-900 shadow-xl animate-fade-in ring-4 ring-rose-50/50 dark:ring-rose-950/20">
           <button 
             onClick={() => setIsAdding(false)} 
-            className="absolute right-4 top-4 text-gray-300 dark:text-slate-600 hover:text-gray-500 p-1 transition-colors"
+            aria-label="Fechar formulário"
+            className="absolute right-2 top-2 text-gray-300 dark:text-slate-600 hover:text-gray-500 w-11 h-11 flex items-center justify-center transition-colors"
           >
             <X size={20} />
           </button>
@@ -237,6 +244,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                       <div 
                         className="flex items-center gap-4 p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-800/50 transition-colors"
                         onClick={() => toggleExpand(customer.id)}
+                        aria-expanded={isExpanded}
                       >
                         <div className="w-12 h-12 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 rounded-2xl flex items-center justify-center font-bold text-lg">
                           {customer.name.charAt(0)}
@@ -274,6 +282,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                               <button 
                                 onClick={() => onEdit(customer.id)}
                                 title="Editar"
+                                aria-label="Editar cliente"
                                 className="w-14 h-11 flex items-center justify-center bg-white dark:bg-[#1f2937] border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-xl active:scale-95 transition-all"
                               >
                                 <Edit2 size={18} />
@@ -282,6 +291,7 @@ const Customers: React.FC<CustomersProps> = ({ customers, addCustomer, deleteCus
                               <button 
                                 onClick={() => handleDelete(customer.id, customer.name)}
                                 title="Excluir"
+                                aria-label="Excluir cliente"
                                 className="w-14 h-11 flex items-center justify-center bg-white dark:bg-[#1f2937] border border-rose-100 dark:border-rose-900/50 text-rose-500 dark:text-rose-400 rounded-xl active:scale-95 transition-all group"
                               >
                                 <Trash2 size={18} className="group-active:scale-110 transition-transform" />

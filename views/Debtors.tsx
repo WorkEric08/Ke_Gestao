@@ -94,12 +94,13 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-rose-500 transition-colors" size={16} />
           <input
             placeholder="Filtrar por nome do cliente..."
+            aria-label="Filtrar por nome do cliente"
             className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-300 transition-all shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && (
-            <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 p-1">
+            <button onClick={() => setSearchTerm('')} aria-label="Limpar busca" className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 w-11 h-11 flex items-center justify-center">
               <X size={14} />
             </button>
           )}
@@ -109,7 +110,8 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedMonth('todos')}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border uppercase tracking-tight whitespace-nowrap ${
+              aria-pressed={selectedMonth === 'todos'}
+              className={`px-4 min-h-10 rounded-xl text-[11px] font-black transition-all border uppercase tracking-tight whitespace-nowrap ${
                 selectedMonth === 'todos' 
                   ? 'bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-200 dark:shadow-none' 
                   : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600'
@@ -121,7 +123,8 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
               <button
                 key={month}
                 onClick={() => setSelectedMonth(month)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border uppercase tracking-tight whitespace-nowrap ${
+                aria-pressed={selectedMonth === month}
+                className={`px-4 min-h-10 rounded-xl text-[11px] font-black transition-all border uppercase tracking-tight whitespace-nowrap ${
                   selectedMonth === month 
                     ? 'bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-200 dark:shadow-none' 
                     : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600'
@@ -190,7 +193,7 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
                       <h4 className="font-bold text-slate-800 dark:text-slate-100 leading-tight truncate text-sm">
                         {customer?.name || 'Cliente'}
                       </h4>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5 font-bold">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5 font-bold">
                         <Phone size={9} /> {formatPhone(customer?.phone || '')}
                       </p>
                     </div>
@@ -202,7 +205,7 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
 
                 <div className="flex items-end justify-between bg-slate-50/50 dark:bg-slate-950/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/50">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
                       <Calendar size={9} /> Vencimento
                     </span>
                     <span className="text-xs font-black text-slate-700 dark:text-slate-300">
@@ -210,7 +213,7 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[8px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest block mb-0.5">Valor da Parcela</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest block mb-0.5">Valor da Parcela</span>
                     <span className={`text-lg font-black ${status === 'vencida' ? 'text-rose-500 dark:text-rose-400' : 'text-slate-800 dark:text-slate-100'}`}>
                       {formatCurrency(ins.amount)}
                     </span>
@@ -218,12 +221,12 @@ const Debtors: React.FC<DebtorsProps> = ({ installments, customers, sales, produ
                 </div>
 
                 <div className="pt-1 flex items-center justify-between">
-                  <span className="text-[9px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.15em]">
+                  <span className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.15em]">
                     Parcela {ins.number}/{sale?.installments}
                   </span>
                   <button 
                     onClick={() => markPaid(ins.id)}
-                    className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-wider active:scale-95 transition-all border border-emerald-100/50 dark:border-emerald-800/50"
+                    className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 min-h-11 rounded-xl font-black text-[11px] uppercase tracking-wider active:scale-95 transition-all border border-emerald-100/50 dark:border-emerald-800/50"
                   >
                     Confirmar Recebimento <ArrowRight size={14} strokeWidth={3} />
                   </button>

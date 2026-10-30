@@ -123,7 +123,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto"
+        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-5 h-14 flex items-center justify-between">
@@ -133,12 +133,12 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
             </div>
             <div className="flex flex-col leading-none">
               <h3 className="text-sm font-black text-slate-800 dark:text-slate-100">Informações do Sistema</h3>
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">DevInfo</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">DevInfo</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-all"
+            className="w-11 h-11 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl active:scale-90 transition-all"
             aria-label="Fechar"
           >
             <X size={16} strokeWidth={2.5} />
@@ -156,7 +156,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
                   <GitCommit size={14} />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                  <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Último commit</span>
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Último commit</span>
                   <code className="font-mono text-[11px] px-1.5 py-0.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded self-start">
                     {LOCAL.commitShort || '—'}
                   </code>
@@ -175,7 +175,7 @@ const DevInfo: React.FC<DevInfoProps> = ({ open, onClose }) => {
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Atualizações</h4>
               {checkedAt && (
-                <span className="text-[9px] text-slate-400 dark:text-slate-600 font-bold">
+                <span className="text-[10px] text-slate-400 dark:text-slate-600 font-bold">
                   Verificado {new Date(checkedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
@@ -251,7 +251,7 @@ const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value: React.Rea
   <div className="flex items-start gap-3 py-1.5">
     <div className="text-slate-300 dark:text-slate-600 mt-0.5 shrink-0">{icon}</div>
     <div className="flex-1 min-w-0 flex flex-col">
-      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{label}</span>
+      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{label}</span>
       <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{value}</span>
     </div>
   </div>

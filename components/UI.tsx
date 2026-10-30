@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect, memo } from 'react';
+import React, { useState, useRef, useEffect, useId, memo } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -39,15 +39,20 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: R
   </div>
 ));
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = memo(({ label, ...props }) => (
+export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = memo(({ label, id, ...props }) => {
+  const autoId = useId();
+  const inputId = id ?? autoId;
+  return (
   <div className="flex flex-col gap-1.5 w-full">
-    {label && <label className="text-sm font-semibold text-gray-600 dark:text-slate-400 px-1">{label}</label>}
+    {label && <label htmlFor={inputId} className="text-sm font-semibold text-gray-600 dark:text-slate-400 px-1">{label}</label>}
     <input
+      id={inputId}
       className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 focus:border-rose-400 dark:focus:border-rose-700 transition-all text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-600"
       {...props}
     />
   </div>
-));
+  );
+});
 
 interface CustomSelectProps {
   label?: string;
@@ -63,13 +68,13 @@ export const Select: React.FC<CustomSelectProps> = memo(({ label, value, onChang
   const selectedOption = options.find(opt => opt.value === value) || options[0];
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, []);
 
   return (
@@ -78,6 +83,8 @@ export const Select: React.FC<CustomSelectProps> = memo(({ label, value, onChang
       
       <button
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between bg-white dark:bg-slate-800 border ${isOpen ? 'border-rose-400 ring-2 ring-rose-200 dark:ring-rose-900' : 'border-gray-200 dark:border-slate-700'} rounded-2xl px-4 py-3.5 transition-all text-left active:scale-[0.99]`}
       >

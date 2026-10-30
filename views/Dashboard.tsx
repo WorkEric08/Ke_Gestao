@@ -61,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
     <div className="
       animate-fade-in pb-8 flex flex-col gap-7
       lg:pb-0 lg:gap-y-5 lg:gap-x-8
-      lg:grid lg:grid-cols-[1fr_340px] lg:grid-rows-[auto_1fr]
+      lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr]
       lg:h-[calc(100vh-9rem)]
     ">
 
@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
         {/* KPI Cards
             Mobile:  grid 3 colunas pequeno
             Desktop: grid 3 colunas, ocupa o espaço restante, cards horizontais */}
-        <section className="px-1 lg:flex-1">
+        <section className="px-1 lg:flex-1 lg:min-w-0">
           <div className="grid grid-cols-3 gap-3">
 
             {/* Vendas */}
@@ -96,16 +96,15 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
               className="
                 flex flex-col items-center justify-center py-5 px-1
                 bg-white dark:bg-[#111827] border-slate-100 dark:border-slate-800
-                shadow-sm cursor-pointer active:scale-95 overflow-hidden group transition-all
+                shadow-sm overflow-hidden group transition-all
                 lg:flex-row lg:items-center lg:justify-start lg:gap-4 lg:px-5 lg:py-4
               "
-              onClick={() => setView('inventory')}
             >
-              <div className="p-2.5 bg-rose-500 text-white rounded-xl mb-3 lg:mb-0 shrink-0 group-hover:scale-110 transition-transform">
+              <div className="p-2.5 bg-rose-500 text-white rounded-xl mb-3 lg:mb-0 shrink-0">
                 <ShoppingCart size={16} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col items-center lg:items-start">
-                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Vendas do Mês</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Vendas do Mês</span>
                 <span className="text-[11px] font-black text-slate-900 dark:text-white mt-0.5 truncate w-full text-center lg:text-left lg:text-base tracking-tight">
                   {formatCurrency(stats.salesMonth).replace('R$ ', 'R$ ').trim()}
                 </span>
@@ -126,7 +125,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
                 <Users size={16} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col items-center lg:items-start">
-                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Clientes Ativos</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Clientes Ativos</span>
                 <span className="text-lg font-black text-slate-900 dark:text-white mt-0.5 leading-none tracking-tight lg:text-2xl">
                   {stats.activeCustomers}
                 </span>
@@ -149,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
                 <Package size={16} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col items-center lg:items-start">
-                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Estoque Baixo</span>
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter lg:tracking-wide lg:text-[10px]">Estoque Baixo</span>
                 <span className={`text-lg font-black leading-none mt-0.5 tracking-tight lg:text-2xl ${stats.lowStockItems > 0 ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>
                   {stats.lowStockItems}
                 </span>
@@ -186,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
               <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-100 dark:bg-slate-800/50 -translate-x-1/2" />
 
               <div className="flex flex-col gap-1.5">
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest flex items-center gap-1.5">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-rose-500 rounded-full" /> Este Mês
                 </span>
                 <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight lg:text-2xl">
@@ -195,7 +194,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
               </div>
 
               <div className="flex flex-col gap-1.5 text-right">
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest flex items-center gap-1.5 justify-end">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest flex items-center gap-1.5 justify-end">
                   Futuro <TrendingUp size={10} className="text-emerald-500" />
                 </span>
                 <span className="text-xl font-black text-emerald-500 dark:text-emerald-400 tracking-tight lg:text-2xl">
@@ -208,7 +207,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <Calendar size={12} className="text-slate-300 dark:text-slate-700" />
-                <span className="text-[9px] text-slate-300 dark:text-slate-600 font-black uppercase tracking-[0.15em]">
+                <span className="text-[10px] text-slate-300 dark:text-slate-600 font-black uppercase tracking-[0.15em]">
                   Cronograma de Entrada
                 </span>
               </div>
@@ -216,7 +215,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar px-1">
                 {stats.receivablesByMonth.length === 0 ? (
                   <div className="w-full py-4 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-800">
-                    <span className="text-[9px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">
+                    <span className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">
                       Sem previsões
                     </span>
                   </div>
@@ -231,7 +230,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
                             : 'bg-slate-50 dark:bg-slate-900 border-slate-50 dark:border-slate-800 text-slate-500'
                         }`}
                       >
-                        <span className={`text-[9px] font-black uppercase tracking-tighter ${m.isCurrent ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-tighter ${m.isCurrent ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>
                           {m.label}
                         </span>
                         <span className={`text-sm font-black tracking-tight ${m.isCurrent ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
@@ -315,7 +314,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
                   <div className="flex-1 overflow-hidden">
                     <div className="flex items-center gap-2">
                       <h4 className="font-black text-sm text-slate-800 dark:text-slate-100 truncate">{reminder.customerName}</h4>
-                      <span className="text-[9px] font-black text-rose-500 bg-rose-50 dark:bg-rose-950 px-1.5 py-0.5 rounded uppercase tracking-tighter shrink-0">
+                      <span className="text-[10px] font-black text-rose-500 bg-rose-50 dark:bg-rose-950 px-1.5 py-0.5 rounded uppercase tracking-tighter shrink-0">
                         Hoje
                       </span>
                     </div>
@@ -335,7 +334,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, setView, userName, reminde
                 </div>
                 <div className="flex flex-col items-center gap-0.5">
                   <h4 className="font-black text-[13px] text-slate-800 dark:text-slate-200 leading-none">Tudo em dia!</h4>
-                  <p className="text-[8px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-[0.2em]">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-[0.2em]">
                     Nenhuma pendência para hoje
                   </p>
                 </div>

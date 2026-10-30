@@ -2,71 +2,50 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Ke Gestão - Gestão e vendas</title>
-    
+    <meta name="description" content="Gestão de vendas, estoque e clientes para consultoras de cosméticos. Funciona offline.">
+    <meta name="color-scheme" content="light dark">
+
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <meta id="theme-meta-light" name="theme-color" media="(prefers-color-scheme: light)" content="#f43f5e">
     <meta id="theme-meta-dark"  name="theme-color" media="(prefers-color-scheme: dark)"  content="#020617">
-    
+
     <!-- iOS Specific -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ke Gestão">
-    <link rel="apple-touch-icon" href="/logo.png">
-    <link rel="icon" type="image/png" href="/logo.png">
-    
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+
     <!-- Android/Generic PWA -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Ke Gestão">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <script>
-      (function() {
-        const storedData = localStorage.getItem('kegestao_v1');
-        let theme = 'light';
-        try { 
-          if (storedData) theme = JSON.parse(storedData).profile.theme; 
-        } catch(e) {}
-        
-        if (!theme || theme === 'undefined') {
+      // Aplica o tema antes da primeira pintura (sem piscar). Mesma regra do store:
+      // o tema salvo só vale se o usuário o escolheu manualmente; senão, segue o sistema.
+      (function () {
+        var theme;
+        try {
+          if (localStorage.getItem('theme_manually_set') === 'true') {
+            var saved = JSON.parse(localStorage.getItem('kegestao_v1'));
+            theme = saved && saved.profile && saved.profile.theme;
+          }
+        } catch (e) {}
+        if (theme !== 'dark' && theme !== 'light') {
           theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
-        
-        const root = document.documentElement;
-        const metaLight = document.getElementById('theme-meta-light');
-        const metaDark  = document.getElementById('theme-meta-dark');
 
-        if (theme === 'dark') {
-          root.classList.add('dark');
-          if (metaLight) metaLight.setAttribute('content', '#020617');
-          if (metaDark)  metaDark.setAttribute('content',  '#020617');
-        } else {
-          root.classList.remove('dark');
-          if (metaLight) metaLight.setAttribute('content', '#f43f5e');
-          if (metaDark)  metaDark.setAttribute('content',  '#f43f5e');
-        }
+        var isDark = theme === 'dark';
+        document.documentElement.classList.toggle('dark', isDark);
+        var color = isDark ? '#020617' : '#f43f5e';
+        var metaLight = document.getElementById('theme-meta-light');
+        var metaDark = document.getElementById('theme-meta-dark');
+        if (metaLight) metaLight.setAttribute('content', color);
+        if (metaDark) metaDark.setAttribute('content', color);
       })();
-
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              rose: {
-                50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af',
-                400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c',
-                800: '#9f1239', 900: '#881337',
-              }
-            }
-          }
-        }
-      }
 
       // Captura o beforeinstallprompt o mais cedo possível — o evento dispara uma única
       // vez e geralmente antes do React montar. Sem isso, o prompt é perdido para sempre.
@@ -80,54 +59,9 @@
         window.__deferredInstallPrompt = null;
         window.dispatchEvent(new CustomEvent('pwa:installed'));
       });
-
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Ke Gestão: Service Worker Registrado'))
-            .catch(err => console.error('Ke Gestão: Falha no SW', err));
-        });
-      }
     </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: contain;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .safe-area-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        input, select, textarea {
-            font-size: 16px !important;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.460.0?external=react,react-dom",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom//": "https://esm.sh/react-dom@^19.2.3/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
 </head>
-<body class="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 select-none transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 select-none">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

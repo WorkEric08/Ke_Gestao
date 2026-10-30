@@ -147,7 +147,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
       {step === 2 && (
         <section className="flex flex-col gap-3 animate-fade-in">
           {/* Desktop: side-by-side. Mobile: stacked */}
-          <div className="flex flex-col lg:grid lg:grid-cols-[1fr_340px] lg:gap-6 lg:items-start gap-3">
+          <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start gap-3">
 
             {/* Left: Product catalog */}
             <div className="flex flex-col gap-3">
@@ -169,7 +169,8 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                     <button
                       key={cat}
                       onClick={() => setFilterCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-[10px] font-black transition-all whitespace-nowrap border capitalize tracking-tight ${
+                      aria-pressed={filterCategory === cat}
+                      className={`px-4 min-h-10 rounded-full text-[11px] font-black transition-all whitespace-nowrap border capitalize tracking-tight ${
                         filterCategory === cat
                           ? 'bg-rose-500 border-rose-500 text-white shadow-sm'
                           : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600'
@@ -186,7 +187,8 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" size={14} />
                 <input
                   placeholder="Pesquisar por nome..."
-                  className="w-full bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-rose-300 transition-all font-medium"
+                  aria-label="Pesquisar produto"
+                  className="w-full bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-xl pl-9 pr-4 py-3 text-xs focus:outline-none focus:border-rose-300 transition-all font-medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -201,10 +203,10 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                     const availableStock = p.stock - inCart;
 
                     return (
-                      <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-transform">
+                      <div key={p.id} className="flex items-center justify-between py-2 pl-3 pr-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                         <div className="flex-1 overflow-hidden pr-2">
                           <p className="font-bold text-slate-800 dark:text-slate-200 text-xs truncate">{p.name}</p>
-                          <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">
                             {p.category} • <span className={availableStock <= p.minStock ? 'text-amber-500' : ''}>{availableStock} un.</span>
                           </p>
                         </div>
@@ -213,7 +215,8 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                           <button
                             disabled={availableStock <= 0}
                             onClick={() => addToCart(p)}
-                            className={`p-2 rounded-lg active:scale-90 shadow-sm transition-all ${
+                            aria-label={`Adicionar ${p.name}`}
+                            className={`w-11 h-11 flex items-center justify-center rounded-xl active:scale-90 shadow-sm transition-all ${
                               availableStock <= 0
                                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-700'
                                 : 'bg-rose-500 text-white'
@@ -244,13 +247,13 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                 <div className="flex items-center justify-between px-1">
                   <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest lg:hidden">Sacola ({cartItems.length})</h4>
                   <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest hidden lg:block">{cartItems.length} {cartItems.length === 1 ? 'item' : 'itens'}</span>
-                  {cartItems.length > 0 && <button onClick={() => setCartItems([])} className="text-[9px] font-black text-rose-400 underline uppercase tracking-widest">Limpar Tudo</button>}
+                  {cartItems.length > 0 && <button onClick={() => setCartItems([])} className="min-h-10 px-1 text-[10px] font-black text-rose-400 underline uppercase tracking-widest">Limpar Tudo</button>}
                 </div>
 
                 {cartItems.length === 0 ? (
                   <div className="py-4 flex flex-col items-center justify-center text-slate-300 dark:text-slate-700">
                     <ShoppingCart size={24} strokeWidth={1.5} className="opacity-50" />
-                    <p className="text-[9px] font-bold mt-1 uppercase tracking-wider opacity-50">Sua sacola está vazia</p>
+                    <p className="text-[10px] font-bold mt-1 uppercase tracking-wider opacity-50">Sua sacola está vazia</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5 max-h-[20vh] lg:max-h-[50vh] overflow-y-auto beauty-scroll">
@@ -262,12 +265,12 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                             <p className="text-[11px] font-bold dark:text-slate-200 truncate">{p?.name}</p>
                             <p className="text-[10px] text-rose-500 font-black">{formatCurrency(item.unitPrice * item.quantity)}</p>
                           </div>
-                          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-1 rounded-lg">
-                            <button onClick={() => updateQuantity(item.productId, -1)} className="p-1 text-slate-400 active:text-rose-500"><Minus size={12} /></button>
-                            <span className="font-bold text-[10px] w-3 text-center dark:text-slate-200">{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.productId, 1)} className="p-1 text-slate-400 active:text-rose-500"><Plus size={12} /></button>
+                          <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-lg">
+                            <button onClick={() => updateQuantity(item.productId, -1)} aria-label={`Diminuir ${p?.name ?? 'item'}`} className="w-10 h-10 flex items-center justify-center text-slate-400 active:text-rose-500"><Minus size={14} /></button>
+                            <span className="font-bold text-xs min-w-4 text-center dark:text-slate-200">{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.productId, 1)} aria-label={`Aumentar ${p?.name ?? 'item'}`} className="w-10 h-10 flex items-center justify-center text-slate-400 active:text-rose-500"><Plus size={14} /></button>
                           </div>
-                          <button onClick={() => removeFromCart(item.productId)} className="p-1.5 text-rose-300 active:text-rose-600"><Trash2 size={14} /></button>
+                          <button onClick={() => removeFromCart(item.productId)} aria-label={`Remover ${p?.name ?? 'item'}`} className="w-10 h-10 flex items-center justify-center text-rose-300 active:text-rose-600"><Trash2 size={16} /></button>
                         </div>
                       );
                     })}
@@ -275,10 +278,10 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                 )}
               </div>
 
-              <div className="flex gap-2 mt-2">
-                <Button variant="secondary" onClick={() => setStep(1)} className="px-5 h-12"><ArrowLeft size={18} /></Button>
+              <div className="flex gap-2 mt-2 sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 -mx-4 px-4 py-3 bg-gray-50/95 dark:bg-slate-950/95 backdrop-blur border-t border-gray-100 dark:border-slate-800 lg:static lg:mx-0 lg:px-0 lg:py-0 lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
+                <Button variant="secondary" onClick={() => setStep(1)} aria-label="Voltar para a escolha do cliente" className="px-5 h-12"><ArrowLeft size={18} /></Button>
                 <Button fullWidth disabled={cartItems.length === 0} onClick={() => setStep(3)} className="h-12 text-sm font-black tracking-tight">
-                  Revisar Pagamento
+                  Revisar Pagamento{cartItems.length > 0 && <span className="tabular-nums"> · {formatCurrency(total)}</span>}
                 </Button>
               </div>
             </div>
@@ -313,7 +316,8 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                       <button
                         key={method.id}
                         onClick={() => setPaymentMethod(method.id as any)}
-                        className={`py-3 rounded-xl border-2 font-bold text-xs transition-all ${
+                        aria-pressed={paymentMethod === method.id}
+                        className={`min-h-11 rounded-xl border-2 font-bold text-xs transition-all ${
                           paymentMethod === method.id
                             ? 'bg-rose-500 border-rose-500 text-white shadow-md'
                             : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400'
@@ -332,7 +336,8 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
                       <button
                         key={n}
                         onClick={() => setInstallments(n)}
-                        className={`py-3 rounded-xl border-2 font-bold text-xs transition-all ${
+                        aria-pressed={installments === n}
+                        className={`min-h-11 rounded-xl border-2 font-bold text-xs transition-all ${
                           installments === n
                             ? 'bg-rose-500 border-rose-500 text-white shadow-md'
                             : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400'
@@ -371,7 +376,7 @@ const NewSale: React.FC<NewSaleProps> = ({ customers, products, createSale, setV
               </Card>
 
               <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setStep(2)} className="px-6"><ArrowLeft size={18} /></Button>
+                <Button variant="secondary" onClick={() => setStep(2)} aria-label="Voltar para os produtos" className="px-6"><ArrowLeft size={18} /></Button>
                 <Button fullWidth variant="primary" onClick={handleFinish} className="py-4 text-lg font-black tracking-tight">
                   Finalizar Venda
                 </Button>

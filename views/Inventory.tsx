@@ -35,6 +35,24 @@ const CATEGORIES = [
   { label: 'Corpo e Banho', value: 'Corpo e Banho', icon: <Bath size={16} /> }
 ];
 
+const FilterChip = memo<{ label: string; active: boolean; icon?: React.ReactNode; onSelect: (label: string) => void }>(
+  ({ label, active, icon, onSelect }) => (
+    <button
+      type="button"
+      onClick={() => onSelect(label)}
+      aria-pressed={active}
+      className={`flex items-center gap-1.5 px-3.5 min-h-10 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
+        active
+          ? 'bg-rose-500 border-rose-500 text-white shadow-sm shadow-rose-200 dark:shadow-none'
+          : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
+      }`}
+    >
+      {icon && <span className={active ? 'text-white' : 'text-rose-400 dark:text-rose-600'}>{icon}</span>}
+      {label}
+    </button>
+  )
+);
+
 const Inventory: React.FC<InventoryProps> = ({
   products,
   addProduct,
@@ -152,23 +170,6 @@ const Inventory: React.FC<InventoryProps> = ({
     return Math.min((product.stock / max) * 100, 100);
   };
 
-  const FilterChip: React.FC<{ label: string; icon?: React.ReactNode }> = ({ label, icon }) => {
-    const active = filterCategory === label;
-    return (
-      <button
-        onClick={() => setFilterCategory(label)}
-        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
-          active
-            ? 'bg-rose-500 border-rose-500 text-white shadow-sm shadow-rose-200 dark:shadow-none'
-            : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-        }`}
-      >
-        {icon && <span className={active ? 'text-white' : 'text-rose-400 dark:text-rose-600'}>{icon}</span>}
-        {label}
-      </button>
-    );
-  };
-
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 overflow-x-hidden">
 
@@ -178,6 +179,7 @@ const Inventory: React.FC<InventoryProps> = ({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" size={17} />
           <input
             placeholder="Buscar produto..."
+            aria-label="Buscar produto"
             className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-slate-100 rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-900 text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -185,6 +187,7 @@ const Inventory: React.FC<InventoryProps> = ({
         </div>
         <button
           onClick={() => { setIsAdding(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          aria-label="Novo produto"
           className="bg-rose-500 text-white p-3 rounded-2xl shadow-sm shadow-rose-200 dark:shadow-none active:scale-95 transition-all shrink-0 flex items-center gap-2"
         >
           <PackagePlus size={20} />
@@ -192,11 +195,11 @@ const Inventory: React.FC<InventoryProps> = ({
       </div>
 
       {/* Category filter chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar w-full min-w-0">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-mask w-full min-w-0">
         <div className="flex gap-2">
-          <FilterChip label="Todos" icon={<Package size={13} />} />
+          <FilterChip label="Todos" icon={<Package size={13} />} active={filterCategory === 'Todos'} onSelect={setFilterCategory} />
           {CATEGORIES.map(cat => (
-            <FilterChip key={cat.value} label={cat.label} icon={cat.icon} />
+            <FilterChip key={cat.value} label={cat.label} icon={cat.icon} active={filterCategory === cat.value} onSelect={setFilterCategory} />
           ))}
         </div>
       </div>
@@ -206,7 +209,8 @@ const Inventory: React.FC<InventoryProps> = ({
         <Card className="flex flex-col gap-4 relative border-2 border-rose-100 dark:border-rose-900/60 shadow-xl animate-fade-in">
           <button
             onClick={closeForm}
-            className="absolute right-4 top-4 text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 p-1 transition-colors rounded-lg"
+            aria-label="Fechar formulário"
+            className="absolute right-2 top-2 text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 w-11 h-11 flex items-center justify-center transition-colors rounded-lg"
           >
             <X size={18} />
           </button>
@@ -273,6 +277,7 @@ const Inventory: React.FC<InventoryProps> = ({
               {editingProduct && (
                 <button
                   type="button"
+                  aria-label="Remover produto"
                   onClick={() => {
                     if (window.confirm(`Remover "${editingProduct.name}"?`)) {
                       deleteProduct(editingProduct.id);
@@ -327,6 +332,7 @@ const Inventory: React.FC<InventoryProps> = ({
                 <div
                   className="flex items-center gap-3.5 p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-800/40 transition-colors"
                   onClick={() => toggleExpand(product.id)}
+                  aria-expanded={isExpanded}
                 >
                   {/* Category icon */}
                   <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${
@@ -361,7 +367,7 @@ const Inventory: React.FC<InventoryProps> = ({
                     </div>
 
                     {isLow && (
-                      <div className="mt-1.5 inline-flex items-center gap-1 text-[9px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md border border-amber-100 dark:border-amber-800/40">
+                      <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md border border-amber-100 dark:border-amber-800/40">
                         <AlertCircle size={9} />
                         ESTOQUE BAIXO
                       </div>
@@ -389,6 +395,7 @@ const Inventory: React.FC<InventoryProps> = ({
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteQuick(product); }}
+                        aria-label={`Remover ${product.name}`}
                         className="w-12 flex items-center justify-center bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/40 text-rose-500 rounded-2xl active:scale-95 transition-all"
                       >
                         <Trash2 size={16} />
